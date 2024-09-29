@@ -28,7 +28,7 @@ import edu.princeton.cs.algs4.StdRandom;
 public class RandomWord {
     public static void main(String[] args) {
         String champion = "";
-        for (int i = 0; !StdIn.isEmpty(); ++i) {
+        for (int i = 1; !StdIn.isEmpty(); ++i) {
             double probability = 1 / i;
             String nextWord = StdIn.readString();
             if (StdRandom.bernoulli(probability)) {
