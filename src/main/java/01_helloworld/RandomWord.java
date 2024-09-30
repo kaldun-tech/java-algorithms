@@ -29,10 +29,10 @@ public class RandomWord {
     public static void main(String[] args) {
         String champion = "";
         for (int i = 1; !StdIn.isEmpty(); ++i) {
-            double probability = 1 / i;
-            String nextWord = StdIn.readString();
+            double probability = 1.0 / i;
+            String word = StdIn.readString();
             if (StdRandom.bernoulli(probability)) {
-                champion = nextWord;
+                champion = word;
             }
         }
         // Prints the champion

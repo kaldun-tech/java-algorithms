@@ -1,8 +1,10 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="JavaClass" type="Application" factoryName="Application">
+  <configuration default="false" name="Java8" type="Application" factoryName="Application">
+    <classpathModifications>
+      <entry path="E:\Git\java-algorithms\lib\algs4.jar" />
+    </classpathModifications>
     <option name="MAIN_CLASS_NAME" value="RandomWord" />
     <module name="java-algorithms" />
-    <option name="PROGRAM_PARAMETERS" value="heads tails" />
     <method v="2">
       <option name="Make" enabled="true" />
     </method>
