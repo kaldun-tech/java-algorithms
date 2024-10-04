@@ -5,7 +5,7 @@ plugins {
 }
 
 application {
-    mainClass = 'Percolation'
+    mainClass = 'PercolationStats'
 }
 
 repositories {

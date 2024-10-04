@@ -16,8 +16,6 @@ import edu.princeton.cs.algs4.StdStats;
  * to compute the sample mean and standard deviation.
  */
 public class PercolationStats {
-    /** Default size of grid */
-    public static final int DEFAULT_N = 20;
     /** Default number of trials */
     public static final int DEFAULT_TRIALS = 30;
 
@@ -38,7 +36,7 @@ public class PercolationStats {
         }
         this.n = n;
         this.trials = trials;
-        this.observed_thresholds = new double[n];
+        this.observed_thresholds = new double[trials];
         runMonteCarloSimulation();
     }
 
@@ -68,8 +66,8 @@ public class PercolationStats {
         int row = 1;
         int col = 1;
         int visitedSites = 1;
-        for (int i = 1; i < n; ++i) {
-            for (int j = 1; j < n; ++j) {
+        for (int i = 1; i <= n; ++i) {
+            for (int j = 1; j <= n; ++j) {
                 if (!percolation.isOpen(i, j)) {
                     double probability = 1.0 / visitedSites;
                     if (StdRandom.bernoulli(probability)) {
@@ -111,7 +109,7 @@ public class PercolationStats {
 
     // test client (see below)
     public static void main(String[] args) {
-        int n = DEFAULT_N;
+        int n = Percolation.DEFAULT_N;
         int trials = DEFAULT_TRIALS;
         if (0 < args.length) {
             try {
@@ -129,14 +127,16 @@ public class PercolationStats {
                 StdOut.println("Failed to parse trials from " + args[1]);
             }
         }
+
         PercolationStats stats = new PercolationStats(n, trials);
-        StdOut.println("mean\t\t\t\t= " + stats.mean());
+        StdOut.println("mean\t\t\t= " + stats.mean());
         StdOut.println("stddev\t\t\t= " + stats.stddev());
 
         StringBuilder sb = new StringBuilder("95% confidence interval\t= [")
                 .append(stats.confidenceLo())
                 .append(", ")
-                .append(stats.confidenceHi());
+                .append(stats.confidenceHi())
+                .append("]");
         StdOut.println(sb.toString());
     }
 

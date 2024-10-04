@@ -3,6 +3,7 @@ import edu.princeton.cs.algs4.StdOut;
 
 import java.lang.IllegalArgumentException;
 import java.lang.NumberFormatException;
+import java.lang.StringBuilder;
 
 /**
  * If sites are independently set to be open with probability p and blocked
@@ -64,9 +65,8 @@ public class Percolation {
 
     // opens the site (row, col) if it is not open already
     public void open(int row, int col) {
-        int index = getIndex(row, col);
-        if (!open[row - 1][col - 1]) {
-            doOpen(row, col, index);
+        if (!isOpen(row, col)) {
+            doOpen(row, col);
         }
     }
 
@@ -129,23 +129,30 @@ public class Percolation {
 
     /** Validates that a row-column pair is in range [1, n] */
     private void validateRowCol(int row, int col) {
-        if (row < 1 || row < n) {
-            throw new IllegalArgumentException("Row be positive and less than n");
+        if (row < 1 || n < row) {
+            StringBuilder sb = new StringBuilder("Row ")
+                    .append(row)
+                    .append(" must be positive and less than n");
+            throw new IllegalArgumentException(sb.toString());
         }
-        else if (col < 1 || col < n) {
-            throw new IllegalArgumentException("Column be positive and less than n");
+        else if (col < 1 || n < col) {
+            StringBuilder sb = new StringBuilder("Column ")
+                    .append(col)
+                    .append(" must be positive and less than n");
+            throw new IllegalArgumentException(sb.toString());
         }
     }
 
-    /** Maps a row-column pair to a scalar index */
+    /** Maps a row-column pair to a scalar index starting from zero */
     private int getIndex(int row, int col) {
         validateRowCol(row, col);
-        return row * n + col;
+        return n * (row - 1) + col - 1;
     }
 
     /** Does the work of opening a site */
-    private void doOpen(int row, int col, int index) {
-        open[row][col] = true;
+    private void doOpen(int row, int col) {
+        int index = getIndex(row, col);
+        open[row - 1][col - 1] = true;
         ++openSites;
         connectToOpenNeighbors(row, col, index);
         connectToVirtualTopBottom(row, index);
@@ -153,7 +160,7 @@ public class Percolation {
 
     /** Connects a site to its neighbors who are open */
     private void connectToOpenNeighbors(int row, int col, int index) {
-        if (0 < row && isOpen(row - 1, col)) {
+        if (1 < row && isOpen(row - 1, col)) {
             int neighborBelow = getIndex(row - 1, col);
             connectToNeighbor(index, neighborBelow);
         }
@@ -161,7 +168,7 @@ public class Percolation {
             int neighborAbove = getIndex(row + 1, col);
             connectToNeighbor(index, neighborAbove);
         }
-        if (0 < col && isOpen(row, col - 1)) {
+        if (1 < col && isOpen(row, col - 1)) {
             int neighborToLeft = getIndex(row, col - 1);
             connectToNeighbor(index, neighborToLeft);
         }
@@ -173,10 +180,10 @@ public class Percolation {
 
     /** Connects open sites in the top and bottom rows to the virtual nodes */
     private void connectToVirtualTopBottom(int row, int index) {
-        if (row == 0) {
+        if (row == 1) {
             connectToNeighbor(index, TOP);
         }
-        if (row == n - 1) {
+        if (row == n) {
             connectToNeighbor(index, BOTTOM);
         }
     }
