@@ -30,37 +30,46 @@ import edu.princeton.cs.algs4.WeightedQuickUnionUF;
 public class Percolation {
     public static final int DEFAULT_N = 20;
 
-    // n is size of grid
-    final int n;
-    // grid is composed of sites which are flagged as open (true) or blocked (false)
-    final boolean grid[][];
-    int openSites = 0;
+    // n is number of rows and columns
+    private final int n;
+    // Connectivity is modeled using union-find with weighting and path compression
+    private final UnionFindWPC unionFind;
+    // The grid of sites. A site is open (true) or closed (false)
+    private final boolean[][] open;
+    // Virtual node at the top of the grid
+    private final int TOP;
+    // Virtual node at the bottom of the grid
+    private final int BOTTOM;
+    // Count of open sites
+    private int openSites = 0;
 
-    // creates n-by-n grid, with all sites initially blocked
+    /** Creates n-by-n grid, with all sites initially blocked
+     * Must take time proportional to n * n
+     * @param n Number of rows and columns in the grid
+     */
     public Percolation(int n) {
         if (n < 1) {
             throw new IllegalArgumentException("Grid size n must be positive")
         }
         this.n = n;
-        grid = new boolean[n][];
-        for (int i = 0; i < n; ++i) {
-            grid[i] = new boolean[n];
-        }
+        TOP = n * n;
+        BOTTOM = TOP + 1;
+        unionFind = new UnionFindWPC(BOTTOM + 1);
+        open = new boolean[n][n];
     }
 
     // opens the site (row, col) if it is not open already
     public void open(int row, int col) {
-        validateRowCol();
-        if (!isOpen(row, col)) {
-            grid[row - 1][col - 1] = true;
-            ++openSites;
+        int index = getIndex(row, col);
+        if (!open[row][col]) {
+            doOpen(row, col, index);
         }
     }
 
     // is the site (row, col) open?
     public boolean isOpen(int row, int col) {
-        validateRowCol();
-        return grid[row - 1][col - 1];
+        validateRowCol(row, col);
+        return open[row, col];
     }
 
     /** Is the site (row, col) full?
@@ -70,9 +79,8 @@ public class Percolation {
      *         an open site in the top row.
      */
     public boolean isFull(int row, int col) {
-        validateRowCol();
-        // TODO union find
-        return false;
+        int index = getIndex(row, col);
+        return isOpen(row, col) && unionFind.isConnected(index, TOP);
     }
 
     // returns the number of open sites
@@ -84,14 +92,7 @@ public class Percolation {
      * in the bottom row. This means the open site in the bottom connects to
      * a full site at the top. */
     public boolean percolates() {
-        int bottomRow = grid[n - 1];
-        // TODO Can this be quicker using dynamic connectivity?
-        for (int i = 0; i < n; ++i) {
-            if (isFull(n, i)) {
-                return true;
-            }
-        }
-        return false;
+        return unionFind.isConnected(TOP, BOTTOM);
     }
 
     // test client (optional)
@@ -109,19 +110,75 @@ public class Percolation {
         }
     }
 
-    /** Union find with weighting and path compression */
+    // Maps a row-column pair to a scalar index
+    private int getIndex(int row, int col) {
+        validateRowCol(row, col);
+        return row * n + col;
+    }
+
+    // Gets whether a site is open for a scalar index
+    private boolean isOpen(int index) {
+        return unionFind.isOpen(index);
+    }
+
+    /** Does the work of opening a site */
+    private void doOpen(int row, int col, int index) {
+        open[row][col] = true;
+        ++openSites;
+        connectToOpenNeighbors(row, col, index);
+        connectToVirtualTopBottom(row, index);
+    }
+
+    /** Connects a site to its neighbors who are open */
+    private void connectToOpenNeighbors(int row, int col, int index) {
+        if (0 < row && isOpen(row - 1, col)) {
+            int neighborBelow = getIndex(row - 1, col);
+            connectToNeighbor(index, neighborBelow);
+        }
+        if (row < n - 1 && isOpen(row + 1, col)) {
+            int neighborAbove = getIndex(row + 1, col);
+            connectToNeighbor(index, neighborAbove);
+        }
+        if (0 < col && isOpen(row, col - 1)) {
+            int neighborToLeft = getIndex(row, col - 1);
+            connectToNeighbor(index, neighborToLeft);
+        }
+        if (col < n - 1 && isOpen(row, col + 1)) {
+            int neighborToRight = getIndex(row, col + 1);
+            connectToNeighbor(index, neighborToRight);
+        }
+    }
+
+    /** Connects open sites in the top and bottom rows to the virtual nodes */
+    private void connectToVirtualTopBottom(int row, int index) {
+        if (row == 0) {
+            connectToNeighbor(index, TOP);
+        }
+        if (row == n - 1) {
+            connectToNeighbor(index, BOTTOM);
+        }
+    }
+
+    /** Connects a site to its neighbor */
+    private void connectToNeighbor(int p, int q) {
+        unionFind.union(p, q);
+    }
+
+    /** Union find with weighting and path compression using site nodes */
     private class UnionFindWPC {
         // IDs form a tree where connected nodes point to their root
-        private final int id[];
+        public final int[] id;
         // Size is the weight of the tree
-        private final int size[];
+        public final int[] size;
 
         /** Initialize an unconnected graph */
         public UnionFindWPC(int n) {
             id = new int[n];
+            size = new int[size];
             // Set id of each object to itself: O(N)
             for (int i = 0; i < n; ++i) {
                 id[i] = i;
+                size[i] = 1;
             }
         }
 
@@ -141,7 +198,7 @@ public class Percolation {
         }
 
         /** Check if p and q have the same root O(lg N) */
-        public boolean connected(int p, int q) {
+        public boolean isConnected(int p, int q) {
             return root(p) == root(q);
         }
 
@@ -149,8 +206,9 @@ public class Percolation {
          * grandparent. This halves the path length over regular union find. */
         private int root(int i) {
             while (i != id[i]) {
-                id[i] = id[id[i]];
-                i = id[i];
+                int grandparent = id[id[i]];
+                id[i] = grandparent;
+                i = grandparent;
             }
             return i;
         }
