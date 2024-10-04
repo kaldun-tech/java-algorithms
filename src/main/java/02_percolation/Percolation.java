@@ -1,10 +1,6 @@
 import edu.princeton.cs.algs4.WeightedQuickUnionUF;
 import edu.princeton.cs.algs4.StdOut;
 
-import java.lang.IllegalArgumentException;
-import java.lang.NumberFormatException;
-import java.lang.StringBuilder;
-
 /**
  * If sites are independently set to be open with probability p and blocked
  * with probability 1-p, what is the probability that the system percolates?
@@ -31,7 +27,8 @@ import java.lang.StringBuilder;
  * an estimate of the percolation threshold.
  */
 public class Percolation {
-    public static final int DEFAULT_N = 20;
+    /** Default size of grid */
+    private static final int DEFAULT_N = 20;
 
     // n is number of rows and columns
     private final int n;
@@ -40,9 +37,9 @@ public class Percolation {
     // The grid of sites. A site is open (true) or closed (false)
     private final boolean[][] open;
     // Virtual node at the top of the grid
-    private final int TOP;
+    private final int top;
     // Virtual node at the bottom of the grid
-    private final int BOTTOM;
+    private final int bottom;
     // Count of open sites
     private int openSites = 0;
 
@@ -57,9 +54,9 @@ public class Percolation {
             throw new IllegalArgumentException("Grid size n must be positive");
         }
         this.n = n;
-        TOP = n * n;
-        BOTTOM = TOP + 1;
-        uf = new WeightedQuickUnionUF(BOTTOM + 1);
+        top = n * n;
+        bottom = top + 1;
+        uf = new WeightedQuickUnionUF(bottom + 1);
         open = new boolean[n][n];
     }
 
@@ -86,7 +83,7 @@ public class Percolation {
      */
     public boolean isFull(int row, int col) {
         int index = getIndex(row, col);
-        return isOpen(row, col) && isConnected(index, TOP);
+        return isOpen(row, col) && isConnected(index, top);
     }
 
     // returns the number of open sites
@@ -100,7 +97,7 @@ public class Percolation {
      * a full site at the top.
      */
     public boolean percolates() {
-        return isConnected(TOP, BOTTOM);
+        return isConnected(top, bottom);
     }
 
     // test client (optional)
@@ -181,10 +178,10 @@ public class Percolation {
     /** Connects open sites in the top and bottom rows to the virtual nodes */
     private void connectToVirtualTopBottom(int row, int index) {
         if (row == 1) {
-            connectToNeighbor(index, TOP);
+            connectToNeighbor(index, top);
         }
         if (row == n) {
-            connectToNeighbor(index, BOTTOM);
+            connectToNeighbor(index, bottom);
         }
     }
 

@@ -1,8 +1,3 @@
-import java.lang.IllegalArgumentException;
-import java.lang.NumberFormatException;
-import java.lang.Math;
-import java.lang.StringBuilder;
-
 import edu.princeton.cs.algs4.StdOut;
 import edu.princeton.cs.algs4.StdRandom;
 import edu.princeton.cs.algs4.StdStats;
@@ -16,15 +11,19 @@ import edu.princeton.cs.algs4.StdStats;
  * to compute the sample mean and standard deviation.
  */
 public class PercolationStats {
+    /** Default size of grid */
+    private static final int DEFAULT_N = 20;
     /** Default number of trials */
-    public static final int DEFAULT_TRIALS = 30;
+    private static final int DEFAULT_TRIALS = 30;
 
     /** Number of rows and columns in percolation grid */
     private final int n;
     /** Number of trials to conduct in simulation */
     private final int trials;
     /** Observed percolation thresholds of trials */
-    private final double[] observed_thresholds;
+    private final double[] observedThresholds;
+    /** Track closed sites during a trial */
+    private int[][] closedSites;
 
     // perform independent trials on an n-by-n grid
     public PercolationStats(int n, int trials) {
@@ -36,13 +35,13 @@ public class PercolationStats {
         }
         this.n = n;
         this.trials = trials;
-        this.observed_thresholds = new double[trials];
+        this.observedThresholds = new double[trials];
         runMonteCarloSimulation();
     }
 
     private void runMonteCarloSimulation() {
         for (int i = 0; i < trials; ++i) {
-            observed_thresholds[i] = runTrial();
+            observedThresholds[i] = runTrial();
         }
     }
 
@@ -54,41 +53,46 @@ public class PercolationStats {
      */
     private double runTrial() {
         Percolation percolation = new Percolation(n);
-        do {
-            openClosedSite(percolation);
-        } while (!percolation.percolates());
+        initializeClosedSites();
+        for (int i = 0; i < n * n && !percolation.percolates(); ++i) {
+            openClosedSite(percolation, i);
+        }
         int openSites = percolation.numberOfOpenSites();
         return (double) openSites / (n * n);
     }
 
-    /** Chooses and opens a closed site with uniform probability */
-    private void openClosedSite(Percolation percolation) {
-        int row = 1;
-        int col = 1;
-        int visitedSites = 1;
-        for (int i = 1; i <= n; ++i) {
-            for (int j = 1; j <= n; ++j) {
-                if (!percolation.isOpen(i, j)) {
-                    double probability = 1.0 / visitedSites;
-                    if (StdRandom.bernoulli(probability)) {
-                        row = i;
-                        col = j;
-                    }
-                    ++visitedSites;
-                }
+    // Initialize a uniformly random table of closed sites to open
+    private void initializeClosedSites() {
+        closedSites = new int[n * n][2];
+        int i = 0;
+        for (int row = 1; row <= n; ++row) {
+            for (int col = 1; col <= n; ++col) {
+                closedSites[i] = new int[] { row, col };
+                ++i;
             }
         }
-        percolation.open(row, col);
+        // Shuffle the sites to open them in uniform random order
+        StdRandom.shuffle(closedSites);
+    }
+
+    /** Chooses and opens the next closed site */
+    private void openClosedSite(Percolation percolation, int i) {
+        // Select and open
+        int row = closedSites[i][0];
+        int col = closedSites[i][1];
+        if (!percolation.isOpen(row, col)) {
+            percolation.open(row, col);
+        }
     }
 
     /** Sample mean of percolation threshold */
     public double mean() {
-        return StdStats.mean(observed_thresholds);
+        return StdStats.mean(observedThresholds);
     }
 
     /** Sample standard deviation of percolation threshold */
     public double stddev() {
-        return StdStats.stddev(observed_thresholds);
+        return StdStats.stddev(observedThresholds);
     }
 
     /** Get the confidence interval */
@@ -98,7 +102,6 @@ public class PercolationStats {
 
     /** Low endpoint of 95% confidence interval */
     public double confidenceLo() {
-        double sqRootTrials = 1;// todo
         return mean() - confidenceInterval();
     }
 
@@ -109,7 +112,7 @@ public class PercolationStats {
 
     // test client (see below)
     public static void main(String[] args) {
-        int n = Percolation.DEFAULT_N;
+        int n = DEFAULT_N;
         int trials = DEFAULT_TRIALS;
         if (0 < args.length) {
             try {
