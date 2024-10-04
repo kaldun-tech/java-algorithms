@@ -33,7 +33,9 @@ public class Percolation {
     // n is number of rows and columns
     private final int n;
     // Connectivity is modeled using union-find with weighting and path compression
-    private final WeightedQuickUnionUF uf;
+    private final WeightedQuickUnionUF ufPercolation;
+    // For checking if a site is full
+    private final WeightedQuickUnionUF ufFull;
     // The grid of sites. A site is open (true) or closed (false)
     private final boolean[][] open;
     // Virtual node at the top of the grid
@@ -56,7 +58,8 @@ public class Percolation {
         this.n = n;
         top = n * n;
         bottom = top + 1;
-        uf = new WeightedQuickUnionUF(bottom + 1);
+        ufFull = new WeightedQuickUnionUF(bottom);
+        ufPercolation = new WeightedQuickUnionUF(bottom + 1);
         open = new boolean[n][n];
     }
 
@@ -83,7 +86,7 @@ public class Percolation {
      */
     public boolean isFull(int row, int col) {
         int index = getIndex(row, col);
-        return isOpen(row, col) && isConnected(index, top);
+        return isOpen(row, col) && ufFull.find(index) == ufFull.find(top);
     }
 
     // returns the number of open sites
@@ -97,7 +100,7 @@ public class Percolation {
      * a full site at the top.
      */
     public boolean percolates() {
-        return isConnected(top, bottom);
+        return ufPercolation.find(top) == ufPercolation.find(bottom);
     }
 
     // test client (optional)
@@ -116,13 +119,6 @@ public class Percolation {
     }
 
     // Helpers
-
-    /** Check whether nodes with specified indices are connected in union find */
-    private boolean isConnected(int p, int q) {
-        int setP = uf.find(p);
-        int setQ = uf.find(q);
-        return setP == setQ;
-    }
 
     /** Validates that a row-column pair is in range [1, n] */
     private void validateRowCol(int row, int col) {
@@ -157,36 +153,47 @@ public class Percolation {
 
     /** Connects a site to its neighbors who are open */
     private void connectToOpenNeighbors(int row, int col, int index) {
-        if (1 < row && isOpen(row - 1, col)) {
-            int neighborBelow = getIndex(row - 1, col);
-            connectToNeighbor(index, neighborBelow);
+        if (1 < row) {
+            // Connect below
+            connectIfOpen(index, row - 1, col);
         }
-        if (row < n - 1 && isOpen(row + 1, col)) {
-            int neighborAbove = getIndex(row + 1, col);
-            connectToNeighbor(index, neighborAbove);
+        if (row < n) {
+            // Connect above
+            connectIfOpen(index, row + 1, col);
         }
-        if (1 < col && isOpen(row, col - 1)) {
-            int neighborToLeft = getIndex(row, col - 1);
-            connectToNeighbor(index, neighborToLeft);
+        if (1 < col) {
+            // Connect to left
+            connectIfOpen(index, row, col - 1);
         }
-        if (col < n - 1 && isOpen(row, col + 1)) {
-            int neighborToRight = getIndex(row, col + 1);
-            connectToNeighbor(index, neighborToRight);
+        if (col < n) {
+            // Connect to right
+            connectIfOpen(index, row, col + 1);
         }
     }
 
     /** Connects open sites in the top and bottom rows to the virtual nodes */
     private void connectToVirtualTopBottom(int row, int index) {
         if (row == 1) {
-            connectToNeighbor(index, top);
+            // Connect to virtual top if in first row
+            ufPercolation.union(top, index);
+            ufFull.union(top, index);
         }
         if (row == n) {
-            connectToNeighbor(index, bottom);
+            // Connect to virtual bottom in last row for only percolation check
+            ufPercolation.union(bottom, index);
+        }
+    }
+
+    private void connectIfOpen(int index, int otherRow, int otherCol) {
+        if (isOpen(otherRow, otherCol)) {
+            int neighbor = getIndex(otherRow, otherCol);
+            connectToNeighbor(index, neighbor);
         }
     }
 
     /** Connects a site to its neighbor */
-    private void connectToNeighbor(int p, int q) {
-        uf.union(p, q);
+    private void connectToNeighbor(int index, int neighbor) {
+        ufPercolation.union(index, neighbor);
+        ufFull.union(index, neighbor);
     }
 }
