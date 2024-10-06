@@ -20,10 +20,7 @@ public class PercolationStats {
     private final int n;
     /** Number of trials to conduct in simulation */
     private final int trials;
-    /** Observed percolation thresholds of trials */
     private final double[] observedThresholds;
-    /** Track closed sites during a trial */
-    private int[][] closedSites;
 
     // perform independent trials on an n-by-n grid
     public PercolationStats(int n, int trials) {
@@ -53,33 +50,31 @@ public class PercolationStats {
      */
     private double runTrial() {
         Percolation percolation = new Percolation(n);
-        initializeClosedSites();
-        for (int i = 0; i < n * n && !percolation.percolates(); ++i) {
-            openClosedSite(percolation, i);
+        int totalSites = n * n;
+        int[] closedSiteIndices = buildClosedSites(totalSites);
+        for (int i = 0; i < totalSites && !percolation.percolates(); ++i) {
+            int index = closedSiteIndices[i];
+            int row = (index / n) + 1;
+            int col = (index % n) + 1;
+            openClosedSite(percolation, row, col);
         }
         int openSites = percolation.numberOfOpenSites();
-        return (double) openSites / (n * n);
+        return (double) openSites / totalSites;
     }
 
-    // Initialize a uniformly random table of closed sites to open
-    private void initializeClosedSites() {
-        closedSites = new int[n * n][2];
-        int i = 0;
-        for (int row = 1; row <= n; ++row) {
-            for (int col = 1; col <= n; ++col) {
-                closedSites[i] = new int[] { row, col };
-                ++i;
-            }
+    // Initialize a uniformly random table of closed site indices to open
+    private int[] buildClosedSites(int totalSites) {
+        int[] closedSites = new int[n * n];
+        for (int i = 0; i < n * n; ++i) {
+            closedSites[i] = i;
         }
         // Shuffle the sites to open them in uniform random order
         StdRandom.shuffle(closedSites);
+        return closedSites;
     }
 
-    /** Chooses and opens the next closed site */
-    private void openClosedSite(Percolation percolation, int i) {
-        // Select and open
-        int row = closedSites[i][0];
-        int col = closedSites[i][1];
+    /** Opens a closed site */
+    private void openClosedSite(Percolation percolation, int row, int col) {
         if (!percolation.isOpen(row, col)) {
             percolation.open(row, col);
         }
