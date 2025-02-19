@@ -109,12 +109,101 @@ public class Deque<Item> implements Iterable<Item> {
 
     // return an iterator over items in order from front to back
     public Iterator<Item> iterator() {
-
+        return new DequeIterator<>();
     }
 
     // unit testing (required)
     public static void main(String[] args) {
+        Deque<Integer> deque = new Deque<Integer>();
+        System.out.println("Initial deque state is empty with size zero");
+        assert deque.isEmpty();
+        assert deque.size() == 0;
 
+        System.out.println("Removing from empty");
+        try {
+            deque.removeFirst();
+            assert false;
+        } catch (NoSuchElementException e) {
+            System.out.println("Caught expected exception for removeFirst on empty");
+        }
+        try {
+            deque.removeLast();
+            assert false;
+        } catch (NoSuchElementException e) {
+            System.out.println("Caught expected exception for removeLast on empty");
+        }
+
+        System.out.println("Add null elements");
+        try {
+            deque.addFirst(null);
+            assert false;
+        } catch (IllegalArgumentException e) {
+            System.out.println("Caught expected exception for addFirst of null");
+        }
+        try {
+            deque.addLast(null);
+            assert false;
+        } catch (IllegalArgumentException e) {
+            System.out.println("Caught expected exception for addLast of null");
+        }
+
+        System.out.println("Add valid elements");
+        for (int i = 0; i < 5; ++i) {
+            deque.addFirst(i);
+            deque.addLast(i);
+            StringBuilder sb = new StringBuilder("Added ")
+                    .append(i)
+                    .append(" to front and end of deque");
+            System.out.println(sb.toString());
+        }
+        assert deque.size() == 10;
+        assert !deque.isEmpty();
+
+        System.out.println("Iterate over elements")
+        Iterator<Integer> it = deque.iterator();
+        boolean triedRemove = false;
+        while (it.hasNext()) {
+            int next = it.next();
+            System.out.println("Next element: " + next);
+            if (triedRemove) continue;
+            try {
+                it.remove();
+                assert false;
+            } catch (UnsupportedOperationException e) {
+                triedRemove = true;
+                System.out.println("Remove not allowed on iterator");
+            }
+        }
+
+        int currentSize = deque.size();
+        assert currentSize == 10;
+        assert !deque.isEmpty();
+
+        System.out.println("Removing each element");
+        for (int i = 4; 0 <= i; --i) {
+            int first = deque.removeFirst();
+            int last = deque.removeLast();
+            assert first == last;
+            assert first == i;
+            System.out.println("Removed " + i);
+            currentSize -= 2;
+            assert deque.size() == currentSize;
+        }
+        
+        System.out.println("Deque is now empty");
+        assert deque.isEmpty();
+        try {
+            deque.removeFirst();
+            assert false;
+        } catch (NoSuchElementException e) {
+            System.out.println("Caught expected exception for removeFirst on empty");
+        }
+        try {
+            deque.removeLast();
+            assert false;
+        } catch (NoSuchElementException e) {
+            System.out.println("Caught expected exception for removeLast on empty");
+        }
     }
 
 }
