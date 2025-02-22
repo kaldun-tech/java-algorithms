@@ -189,7 +189,7 @@ public class Deque<Item> implements Iterable<Item> {
             currentSize -= 2;
             assert deque.size() == currentSize;
         }
-        
+
         System.out.println("Deque is now empty");
         assert deque.isEmpty();
         try {
