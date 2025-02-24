@@ -25,10 +25,8 @@ public class Permutation {
             queue.enqueue(next);
         }
 
-        Iterator<String> it = queue.iterator();
         for (int i = 0; i < k; ++i) {
-            String next = it.next();
-            StdOut.println(next);
+            StdOut.println(queue.dequeue());
         }
         StdOut.println("Done!");
     }

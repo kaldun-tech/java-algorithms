@@ -124,7 +124,55 @@ public class RandomizedQueue<Item> implements Iterable<Item> {
 
     // unit testing (required)
     public static void main(String[] args) {
-
+        RandomizedQueue<Integer> queue = new RandomizedQueue<>();
+    
+        // Test initialization
+        System.out.println("Initial queue state is empty: " + queue.isEmpty()); // Expected: true
+        System.out.println("Initial size: " + queue.size()); // Expected: 0
+    
+        // Test adding items
+        queue.enqueue(1);
+        queue.enqueue(2);
+        queue.enqueue(3);
+        System.out.println("Size after adding 3 items: " + queue.size()); // Expected: 3
+    
+        // Test sampling items
+        System.out.println("Sampled item: " + queue.sample()); // Expected: Random item (1, 2, or 3)
+    
+        // Test removing items
+        System.out.println("Removed item: " + queue.dequeue()); // Expected: Random item (1, 2, or 3)
+        System.out.println("Size after removing an item: " + queue.size()); // Expected: 2
+    
+        // Test exception handling for dequeue on empty queue
+        queue.dequeue(); // Remove two more items
+        queue.dequeue();
+        try {
+            queue.dequeue(); // Should throw NoSuchElementException
+        } catch (NoSuchElementException e) {
+            System.out.println("Caught expected exception: " + e.getMessage());
+        }
+    
+        // Test exception handling for sample on empty queue
+        try {
+            queue.sample(); // Should throw NoSuchElementException
+        } catch (NoSuchElementException e) {
+            System.out.println("Caught expected exception: " + e.getMessage());
+        }
+    
+        // Test exception handling for adding null
+        try {
+            queue.enqueue(null); // Should throw IllegalArgumentException
+        } catch (IllegalArgumentException e) {
+            System.out.println("Caught expected exception: " + e.getMessage());
+        }
+    
+        // Test iterator functionality
+        queue.enqueue(4);
+        queue.enqueue(5);
+        System.out.println("Items in random order:");
+        for (Integer item : queue) {
+            System.out.println(item); // Expected: Random order of items (4, 5)
+        }
     }
 
 }

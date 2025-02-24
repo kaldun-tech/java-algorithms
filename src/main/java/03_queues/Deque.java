@@ -9,17 +9,17 @@ public class Deque<Item> implements Iterable<Item> {
     private int size = 0;
     private int maxSize = 2;
 
-    // construct an empty deque
+    /** construct an empty deque */
     public Deque() {
         items = new Item[maxSize];
     }
 
-    // is the deque empty?
+    /** is the deque empty? */
     public boolean isEmpty() {
         return size == 0;
     }
 
-    // return the number of items on the deque
+    /** return the number of items on the deque */
     public int size() {
         return size;
     }
@@ -54,7 +54,7 @@ public class Deque<Item> implements Iterable<Item> {
         }
     }
 
-    // add the item to the front
+    /** add the item to the front */
     public void addFirst(Item item) {
         validateItem();
         growIfNeeded();
@@ -63,7 +63,7 @@ public class Deque<Item> implements Iterable<Item> {
         ++size;
     }
 
-    // add the item to the back
+    /** add the item to the back */
     public void addLast(Item item) {
         validateItem();
         growIfNeeded();
@@ -71,7 +71,7 @@ public class Deque<Item> implements Iterable<Item> {
         ++size;
     }
 
-    // remove and return the item from the front
+    /** remove and return the item from the front */
     public Item removeFirst() {
         if (isEmpty()) {
             throw new NoSuchElementException("No first element");
@@ -80,7 +80,7 @@ public class Deque<Item> implements Iterable<Item> {
         --size;
     }
 
-    // remove and return the item from the back
+    /** remove and return the item from the back */
     public Item removeLast() {
         if (isEmpty()) {
             throw new NoSuchElementException("No last element");
@@ -107,19 +107,19 @@ public class Deque<Item> implements Iterable<Item> {
         }
     }
 
-    // return an iterator over items in order from front to back
+    /** return an iterator over items in order from front to back */
     public Iterator<Item> iterator() {
         return new DequeIterator<>();
     }
 
-    // unit testing (required)
+    /** unit testing (required) */
     public static void main(String[] args) {
         Deque<Integer> deque = new Deque<Integer>();
         System.out.println("Initial deque state is empty with size zero");
         assert deque.isEmpty();
         assert deque.size() == 0;
 
-        System.out.println("Removing from empty");
+        System.out.println("Test exception handling by removing from empty");
         try {
             deque.removeFirst();
             assert false;
@@ -133,7 +133,7 @@ public class Deque<Item> implements Iterable<Item> {
             System.out.println("Caught expected exception for removeLast on empty");
         }
 
-        System.out.println("Add null elements");
+        System.out.println("Test exception handling by rdd null elements");
         try {
             deque.addFirst(null);
             assert false;
@@ -147,7 +147,7 @@ public class Deque<Item> implements Iterable<Item> {
             System.out.println("Caught expected exception for addLast of null");
         }
 
-        System.out.println("Add valid elements");
+        System.out.println("Add elements to front and back");
         for (int i = 0; i < 5; ++i) {
             deque.addFirst(i);
             deque.addLast(i);
@@ -159,7 +159,7 @@ public class Deque<Item> implements Iterable<Item> {
         assert deque.size() == 10;
         assert !deque.isEmpty();
 
-        System.out.println("Iterate over elements")
+        System.out.println("Test iterating over elements")
         Iterator<Integer> it = deque.iterator();
         boolean triedRemove = false;
         while (it.hasNext()) {
@@ -175,11 +175,18 @@ public class Deque<Item> implements Iterable<Item> {
             }
         }
 
+        System.out.println("Test iterator's next method when there are no more items");
+        try {
+            iterator.next();
+        } catch (NoSuchElementException e) {
+            System.out.println("Caught expected exception: " + e.getMessage());
+        }
+
         int currentSize = deque.size();
         assert currentSize == 10;
         assert !deque.isEmpty();
 
-        System.out.println("Removing each element");
+        System.out.println("Removing elements");
         for (int i = 4; 0 <= i; --i) {
             int first = deque.removeFirst();
             int last = deque.removeLast();
