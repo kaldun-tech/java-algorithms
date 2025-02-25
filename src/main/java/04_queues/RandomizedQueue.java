@@ -1,18 +1,18 @@
 import java.util.NoSuchElementException;
 import java.util.Iterator;
 import java.lang.IllegalArgumentException;
-import java.lang.UnsupportedOperationException;
+
 import edu.princeton.cs.algs4.StdRandom;
 
 public class RandomizedQueue<Item> implements Iterable<Item> {
 
-    private Item[] items;
+    private Item[] q;
     private int size = 0;
     private int maxSize = 2;
 
     // construct an empty randomized queue
     public RandomizedQueue() {
-        items = new Item[maxSize];
+        q = new Item[maxSize];
     }
 
     // is the randomized queue empty?
@@ -25,17 +25,30 @@ public class RandomizedQueue<Item> implements Iterable<Item> {
         return size;
     }
 
-    private void grow() {
-        maxSize *= 2;
+    private void resize() {
         Item[] newItems = new Item[maxSize];
         for (int i = 0; i < size; ++i) {
-            newItems[i] = items[i];
+            newItems[i] = q[i];
         }
-        items = newItems;
+        q = newItems;
+    }
+
+    private void grow() {
+        maxSize *= 2;
+        resize();
     }
 
     private void growIfNeeded() {
         if (size + 1 == maxSize) grow();
+    }
+
+    private void shrink() {
+        maxSize /= 2;
+        resize();
+    }
+
+    private void shrinkIfNeeded() {
+        if (size - 1 < maxSize / 4) shrink();
     }
 
     private void validateItem(Item item) {
@@ -45,18 +58,16 @@ public class RandomizedQueue<Item> implements Iterable<Item> {
 
     private void shiftLeft(int start) {
         for (int i = start; i < size - 1; ++i) {
-            items[i] = items[i + 1];
+            q[i] = q[i + 1];
         }
     }
 
     /* Add the item. Since the order of removal is random, the position where
      * the item is added is irrelevant. I choose to add to the end like a stack */
     public void enqueue(Item item) {
-        if (item == null)
-            throw new IllegalArgumentException("Cannot add null item");
-
+        validateItem(item);
         growIfNeeded();
-        items[size] = item;
+        q[size] = item;
         ++size;
     }
 
@@ -79,8 +90,9 @@ public class RandomizedQueue<Item> implements Iterable<Item> {
     public Item dequeue() {
         checkEmpty();
         int position = getRandomPosition();
-        Item item = items[position];
+        Item item = q[position];
         shiftLeft(position);
+        shrinkIfNeeded();
         return item;
     }
 
@@ -100,7 +112,7 @@ public class RandomizedQueue<Item> implements Iterable<Item> {
         }
 
         public Item next() {
-            Item n = items[positions[i]];
+            Item n = q[positions[i]];
             ++i;
             return n;
         }
@@ -114,7 +126,7 @@ public class RandomizedQueue<Item> implements Iterable<Item> {
     public Item sample() {
         checkEmpty();
         int position = getRandomPosition();
-        return items[position];
+        return q[position];
     }
 
     // return an independent iterator over items in random order

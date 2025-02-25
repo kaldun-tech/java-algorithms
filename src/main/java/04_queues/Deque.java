@@ -5,13 +5,13 @@ import java.lang.UnsupportedOperationException;
 
 public class Deque<Item> implements Iterable<Item> {
 
-    private Item[] items;
+    private Item[] q;
     private int size = 0;
     private int maxSize = 2;
 
     /** construct an empty deque */
     public Deque() {
-        items = new Item[maxSize];
+        q = new Item[maxSize];
     }
 
     /** is the deque empty? */
@@ -24,17 +24,30 @@ public class Deque<Item> implements Iterable<Item> {
         return size;
     }
 
-    private void grow() {
-        maxSize *= 2;
+    private void resize() {
         Item[] newItems = new Item[maxSize];
         for (int i = 0; i < size; ++i) {
-            newItems[i] = items[i];
+            newItems[i] = q[i];
         }
-        items = newItems;
+        q = newItems;
+    }
+
+    private void grow() {
+        maxSize *= 2;
+        resize();
     }
 
     private void growIfNeeded() {
         if (size + 1 == maxSize) grow();
+    }
+
+    private void shrink() {
+        maxSize /= 2;
+        resize();
+    }
+
+    private void shrinkIfNeeded() {
+        if (size - 1 < maxSize / 4) shrink();
     }
 
     private void validateItem(Item item) {
@@ -44,13 +57,13 @@ public class Deque<Item> implements Iterable<Item> {
 
     private void shiftLeft() {
         for (int i = 0; i < size - 1; ++i) {
-            items[i] = items[i + 1];
+            q[i] = q[i + 1];
         }
     }
 
     private void shiftRight() {
         for (int i = size; 0 < i; --i) {
-            items[i] = items[i - 1];
+            q[i] = q[i - 1];
         }
     }
 
@@ -59,7 +72,7 @@ public class Deque<Item> implements Iterable<Item> {
         validateItem();
         growIfNeeded();
         shiftRight();
-        items[0] = item;
+        q[0] = item;
         ++size;
     }
 
@@ -67,7 +80,7 @@ public class Deque<Item> implements Iterable<Item> {
     public void addLast(Item item) {
         validateItem();
         growIfNeeded();
-        items[size] = item;
+        q[size] = item;
         ++size;
     }
 
@@ -86,7 +99,7 @@ public class Deque<Item> implements Iterable<Item> {
             throw new NoSuchElementException("No last element");
         }
         --size;
-        items[size] = null;
+        q[size] = null;
     }
 
     private class DequeIterator<Item> implements Iterator<Item> {
@@ -97,7 +110,7 @@ public class Deque<Item> implements Iterable<Item> {
         }
 
         public Item next() {
-            Item n = items[i];
+            Item n = q[i];
             ++i;
             return n;
         }
