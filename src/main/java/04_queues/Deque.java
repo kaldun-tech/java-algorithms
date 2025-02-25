@@ -169,7 +169,7 @@ public class Deque<Item> implements Iterable<Item> {
         assert deque.size() == 10;
         assert !deque.isEmpty();
 
-        System.out.println("Test iterating over elements")
+        System.out.println("Test iterating over elements");
         Iterator<Integer> it = deque.iterator();
         boolean triedRemove = false;
         while (it.hasNext()) {
