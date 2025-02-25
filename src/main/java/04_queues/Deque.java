@@ -6,7 +6,8 @@ import java.lang.UnsupportedOperationException;
 public class Deque<Item> implements Iterable<Item> {
 
     private Item[] q;
-    private int size = 0;
+    private int head = 0;
+    private int tail = 0;
     private int maxSize = 2;
 
     /** construct an empty deque */
@@ -16,38 +17,38 @@ public class Deque<Item> implements Iterable<Item> {
 
     /** is the deque empty? */
     public boolean isEmpty() {
-        return size == 0;
+        return head == tail;
     }
 
     /** return the number of items on the deque */
     public int size() {
-        return size;
+        return tail - head;
     }
 
-    private void resize() {
+    private void rebuildArray() {
         Item[] newItems = new Item[maxSize];
-        for (int i = 0; i < size; ++i) {
-            newItems[i] = q[i];
+        int newHead = maxSize / 4;
+        int newTail = newHead;
+        for (int i = head; i < tail; ++i, ++newTail) {
+            newItems[newTail] = q[i];
         }
         q = newItems;
-    }
-
-    private void grow() {
-        maxSize *= 2;
-        resize();
+        head = newHead;
+        tail = newTail;
     }
 
     private void growIfNeeded() {
-        if (size + 1 == maxSize) grow();
-    }
-
-    private void shrink() {
-        maxSize /= 2;
-        resize();
+        if (head == 0 || tail + 1 == maxSize) {
+            if (size() + 1 == maxSize) maxSize *= 2;
+            rebuildArray();
+        }
     }
 
     private void shrinkIfNeeded() {
-        if (size - 1 < maxSize / 4) shrink();
+        if (size() - 1 < maxSize / 4) {
+            maxSize /= 2;
+            rebuildArray();
+        }
     }
 
     private void validateItem(Item item) {
@@ -55,33 +56,23 @@ public class Deque<Item> implements Iterable<Item> {
             throw new IllegalArgumentException("Cannot add null item");
     }
 
-    private void shiftLeft() {
-        for (int i = 0; i < size - 1; ++i) {
-            q[i] = q[i + 1];
-        }
-    }
-
-    private void shiftRight() {
-        for (int i = size; 0 < i; --i) {
-            q[i] = q[i - 1];
-        }
-    }
-
     /** add the item to the front */
     public void addFirst(Item item) {
-        validateItem();
+        validateItem(item);
         growIfNeeded();
-        shiftRight();
-        q[0] = item;
-        ++size;
+        // TODO problem if we add before index 0
+        if (0 < head) {
+            --head;
+            q[head] = item;
+        }
     }
 
     /** add the item to the back */
     public void addLast(Item item) {
-        validateItem();
+        validateItem(item);
         growIfNeeded();
-        q[size] = item;
-        ++size;
+        q[tail] = item;
+        ++tail;
     }
 
     /** remove and return the item from the front */
@@ -89,8 +80,11 @@ public class Deque<Item> implements Iterable<Item> {
         if (isEmpty()) {
             throw new NoSuchElementException("No first element");
         }
-        shiftLeft();
-        --size;
+        Item t = q[head];
+        q[head] = null;
+        ++head;
+        shrinkIfNeeded();
+        return t;
     }
 
     /** remove and return the item from the back */
@@ -98,21 +92,24 @@ public class Deque<Item> implements Iterable<Item> {
         if (isEmpty()) {
             throw new NoSuchElementException("No last element");
         }
-        --size;
-        q[size] = null;
+        Item t = q[tail];
+        q[tail] = null;
+        --tail;
+        shrinkIfNeeded();
+        return t;
     }
 
     private class DequeIterator<Item> implements Iterator<Item> {
-        private int i = 0;
+        private int i = head;
 
         public boolean hasNext() {
-            return i < size;
+            return i <= tail;
         }
 
         public Item next() {
-            Item n = q[i];
+            Item t = q[i];
             ++i;
-            return n;
+            return t;
         }
 
         public void remove() {
