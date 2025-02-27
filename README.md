@@ -11,12 +11,12 @@ Run the program: `java YourProgram`
 ### Compiling with Princeton packages
 
 Compile with the JAR in the classpath:
-`javac -cp .;C:\path\to\algs4.jar YourProgram.java`
+`javac -cp C:\path\to\algs4.jar YourProgram.java`
 
 Run with the JAR in the classpath:
-`java -cp .;C:\path\to\algs4.jar YourProgram`
+`java -cp C:\path\to\algs4.jar YourProgram`
 
-### Useful options
+### Important options
 Compile multiple files: `javac File1.java File2.java`
 
 Specify output directory: `javac -d bin YourProgram.java`

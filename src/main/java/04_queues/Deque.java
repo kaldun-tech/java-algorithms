@@ -14,7 +14,7 @@ public class Deque<Item> implements Iterable<Item> {
 
     /** construct an empty deque */
     public Deque() {
-        q = new Item[maxSize];
+        q = (Item[]) new Object[maxSize];
     }
 
     /** is the deque empty? */
@@ -28,7 +28,7 @@ public class Deque<Item> implements Iterable<Item> {
     }
 
     private void rebuildArray() {
-        Item[] newItems = new Item[maxSize];
+        Item[] newItems = (Item[]) new Object[maxSize];
         int newHead = maxSize / 4;
         int newTail = newHead;
         for (int i = head; i < tail; ++i, ++newTail) {
@@ -62,11 +62,8 @@ public class Deque<Item> implements Iterable<Item> {
     public void addFirst(Item item) {
         validateItem(item);
         growIfNeeded();
-        // TODO problem if we add before index 0
-        if (0 < head) {
-            --head;
-            q[head] = item;
-        }
+        --head;
+        q[head] = item;
     }
 
     /** add the item to the back */
@@ -101,7 +98,7 @@ public class Deque<Item> implements Iterable<Item> {
         return t;
     }
 
-    private class DequeIterator<Item> implements Iterator<Item> {
+    private class DequeIterator implements Iterator<Item> {
         private int i = head;
 
         public boolean hasNext() {
@@ -115,13 +112,13 @@ public class Deque<Item> implements Iterable<Item> {
         }
 
         public void remove() {
-            return UnsupportedOperationException("Cannot remove from queue");
+            throw new UnsupportedOperationException("Cannot remove from queue");
         }
     }
 
     /** return an iterator over items in order from front to back */
     public Iterator<Item> iterator() {
-        return new DequeIterator<>();
+        return new DequeIterator();
     }
 
     /** unit testing (required) */
@@ -189,7 +186,7 @@ public class Deque<Item> implements Iterable<Item> {
 
         StdOut.println("Test iterator's next method when there are no more items");
         try {
-            iterator.next();
+            it.next();
         } catch (NoSuchElementException e) {
             StdOut.println("Caught expected exception: " + e.getMessage());
         }
