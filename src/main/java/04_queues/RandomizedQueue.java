@@ -11,7 +11,7 @@ public class RandomizedQueue<Item> implements Iterable<Item> {
     private int tail = 0;
     private int maxSize = 2;
 
-    private static Item[] createArray(int capacity) {
+    private Item[] createArray(int capacity) {
         return (Item[]) new Object[capacity];
     }
 

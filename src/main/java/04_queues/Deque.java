@@ -10,7 +10,7 @@ public class Deque<Item> implements Iterable<Item> {
     private int tail = 0;
     private int maxSize = 2;
 
-    private static Item[] createArray(int capacity) {
+    private Item[] createArray(int capacity) {
         return (Item[]) new Object[capacity];
     }
 
@@ -30,7 +30,7 @@ public class Deque<Item> implements Iterable<Item> {
     }
 
     private void resize() {
-        Item[] newItems = createArray(maxSize)
+        Item[] newItems = createArray(maxSize);
         int newHead = maxSize / 4;
         int newTail = newHead;
         for (int i = head; i <= tail; ++i, ++newTail) {
