@@ -6,53 +6,48 @@ import edu.princeton.cs.algs4.StdOut;
 
 public class RandomizedQueue<Item> implements Iterable<Item> {
 
+    private static final int MIN_SIZE = 2;
+
     private Item[] q;
-    private int head = 0;
-    private int tail = 0;
-    private int maxSize = 2;
+    private int size = 0;
+
+    // construct an empty randomized queue
+    public RandomizedQueue() {
+        q = createArray(MIN_SIZE);
+    }
 
     private Item[] createArray(int capacity) {
         return (Item[]) new Object[capacity];
     }
 
-    // construct an empty randomized queue
-    public RandomizedQueue() {
-        q = createArray(maxSize);
-    }
-
     // is the randomized queue empty?
     public boolean isEmpty() {
-        return head == tail;
+        return size == 0;
     }
 
     // return the number of items on the randomized queue
     public int size() {
-        return tail - head;
+        return size;
     }
 
-    private void resize() {
-        Item[] newItems = createArray(maxSize);
-        int newHead = maxSize / 4;
-        int newTail = newHead;
-        for (int i = head; i <= tail; ++i, ++newTail) {
-            newItems[newTail] = q[i];
+    private void resize(int newSize) {
+        newSize = Math.max(newSize, MIN_SIZE);
+        Item[] newQ = createArray(newSize);
+        for (int i = 0; i <= size; ++i) {
+            newQ[i] = q[i];
         }
-        q = newItems;
-        head = newHead;
-        tail = newTail;
+        q = newQ;
     }
 
     private void growIfNeeded() {
-        if (head == 0 || tail == maxSize) {
-            if (size() + 1 == maxSize) maxSize *= 2;
-            resize();
+        if (q.length <= size) {
+            resize(2 * q.length);
         }
     }
 
     private void shrinkIfNeeded() {
-        if (size() < maxSize / 4) {
-            maxSize /= 2;
-            resize();
+        if (size <= q.length / 4) {
+            resize(q.length / 2);
         }
     }
 
@@ -61,61 +56,57 @@ public class RandomizedQueue<Item> implements Iterable<Item> {
             throw new IllegalArgumentException("Cannot add null item");
     }
 
-    /** Enqueue the item. Since order is irrelevant it may be added to the front or end. */
+    /** Enqueue the item. I choose to add to the end like a stack */
     public void enqueue(Item item) {
         validateItem(item);
         growIfNeeded();
-        if (0 < head) {
-            q[head] = item;
-            --head;
-        } else {
-            q[tail] = item;
-            ++tail;
-        }
+        q[size] = item;
+        ++size;
     }
 
     private void checkEmpty() {
         if (isEmpty())
-            throw new NoSuchElementException("Queue is empty");
+            throw new NoSuchElementException("Randomized queue is empty");
     }
 
-    private int getRandomPosition() {
-        double probability = 1.0 / size();
-        for (int i = head; i <= tail; ++i) {
-            if (StdRandom.bernoulli(probability))
-                return i;
-        }
-        throw new UnsupportedOperationException("Unexpected failure computing random position");
+    private int getRandom() {
+        return StdRandom.uniform(size);
     }
 
-    private void shiftTailLeft(int position) {
-        if (position != tail) {
-            // Copy existing tail to removed position
-            q[position] = q[tail];
-        }
-        q[tail] = null;
-        --tail;
+    private Item pop(int pos) {
+        Item popped = q[pos];
+        --size;
+        q[pos] = q[size];
+        q[size] = null;
+        return popped;
     }
 
     /** Remove and return a random item */
     public Item dequeue() {
         checkEmpty();
-        int random = getRandomPosition();
-        Item item = q[random];
-        shiftTailLeft(random);
+        int random = getRandom();
+        Item item = pop(random);
         shrinkIfNeeded();
         return item;
     }
 
+    /** Return a random item (but do not remove it) */
+    public Item sample() {
+        checkEmpty();
+        int random = getRandom();
+        return q[random];
+    }
+
     private class RandomizedQueueIterator implements Iterator<Item> {
-        Item[] samples;
+        int[] samples;
         int i = 0;
 
         public RandomizedQueueIterator() {
-            samples = createArray(size());
+            samples = new int[size()];
             for (int j = 0; j < samples.length; ++j) {
-                samples[j] = sample();
+                samples[i] = i;
             }
+            StdRandom.shuffle(samples);
         }
 
         public boolean hasNext() {
@@ -126,7 +117,8 @@ public class RandomizedQueue<Item> implements Iterable<Item> {
             if (!hasNext())
                 throw new NoSuchElementException("No such next element");
 
-            Item n = samples[i];
+            int sample = samples[i];
+            Item n = q[sample];
             ++i;
             return n;
         }
@@ -134,13 +126,6 @@ public class RandomizedQueue<Item> implements Iterable<Item> {
         public void remove() {
             throw new UnsupportedOperationException("Cannot remove from queue");
         }
-    }
-
-    /** return a random item (but do not remove it) */
-    public Item sample() {
-        checkEmpty();
-        int position = getRandomPosition();
-        return q[position];
     }
 
     // return an independent iterator over items in random order
