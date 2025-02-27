@@ -1,6 +1,5 @@
 import java.util.NoSuchElementException;
 import java.util.Iterator;
-import java.lang.IllegalArgumentException;
 
 import edu.princeton.cs.algs4.StdRandom;
 import edu.princeton.cs.algs4.StdOut;
@@ -121,6 +120,9 @@ public class RandomizedQueue<Item> implements Iterable<Item> {
         }
 
         public Item next() {
+            if (!hasNext())
+                throw new NoSuchElementException("No such next element");
+
             Item n = samples[i];
             ++i;
             return n;

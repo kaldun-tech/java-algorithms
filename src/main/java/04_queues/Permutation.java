@@ -1,6 +1,5 @@
 import edu.princeton.cs.algs4.StdIn;
 import edu.princeton.cs.algs4.StdOut;
-import java.util.NoSuchElementException;
 
 public class Permutation {
     /** Takes an integer k as a command-line argument;
@@ -11,10 +10,11 @@ public class Permutation {
         StdOut.print("Enter integer k: ");
         int k = 0;
         try {
-            k = StdIn.readInt();
-        } catch (NoSuchElementException e) {
-            StdOut.println("Failed to read k from input");
-            System.exit(1);
+            String str = StdIn.readString();
+            k = Integer.parseInt(str);
+        } catch (NumberFormatException e) {
+            StdOut.println("Failed to read and parse k from input");
+            return;
         }
 
         StdOut.println("Enter sequence of strings:");

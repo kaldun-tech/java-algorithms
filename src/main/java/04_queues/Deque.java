@@ -1,7 +1,5 @@
 import java.util.NoSuchElementException;
 import java.util.Iterator;
-import java.lang.IllegalArgumentException;
-import java.lang.UnsupportedOperationException;
 
 import edu.princeton.cs.algs4.StdOut;
 
@@ -106,6 +104,9 @@ public class Deque<Item> implements Iterable<Item> {
         }
 
         public Item next() {
+            if (!hasNext())
+                throw new NoSuchElementException("No such next element");
+
             Item t = q[i];
             ++i;
             return t;
