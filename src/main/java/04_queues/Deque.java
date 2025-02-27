@@ -5,54 +5,34 @@ import edu.princeton.cs.algs4.StdOut;
 
 public class Deque<Item> implements Iterable<Item> {
 
-    private Item[] q;
-    private int head = 0;
-    private int tail = 0;
-    private int maxSize = 2;
-
-    private Item[] createArray(int capacity) {
-        return (Item[]) new Object[capacity];
+    private class Node {
+        Item item;
+        Node prev;
+        Node next;
+        public Node(Item val) {
+            this.item = val;
+        }
     }
 
-    /** construct an empty deque */
+    private Node head;
+    private Node tail;
+    private int size;
+
+    /** Construct an empty deque. Head and tail are initialized as dummy pointers */
     public Deque() {
-        q = createArray(maxSize);
+        size = 0;
+        head = new Node(null);
+        tail = new Node(null);
     }
 
     /** is the deque empty? */
     public boolean isEmpty() {
-        return head == tail;
+        return size == 0;
     }
 
     /** return the number of items on the deque */
     public int size() {
-        return tail - head;
-    }
-
-    private void resize() {
-        Item[] newItems = createArray(maxSize);
-        int newHead = maxSize / 4;
-        int newTail = newHead;
-        for (int i = head; i <= tail; ++i, ++newTail) {
-            newItems[newTail] = q[i];
-        }
-        q = newItems;
-        head = newHead;
-        tail = newTail;
-    }
-
-    private void growIfNeeded() {
-        if (head == 0 || tail == maxSize) {
-            if (size() + 1 == maxSize) maxSize *= 2;
-            resize();
-        }
-    }
-
-    private void shrinkIfNeeded() {
-        if (size() < maxSize / 4) {
-            maxSize /= 2;
-            resize();
-        }
+        return size;
     }
 
     private void validateItem(Item item) {
@@ -63,17 +43,31 @@ public class Deque<Item> implements Iterable<Item> {
     /** add the item to the front */
     public void addFirst(Item item) {
         validateItem(item);
-        growIfNeeded();
-        q[head] = item;
-        if (0 < head) --head;
+        Node first = new Node(item);
+        if (isEmpty()) {
+            // Set initial
+            head.next = tail.next = first;
+        } else {
+            // Link to existing
+            head.next.prev = first;
+            first.next = head.next;
+            head.next = first;
+        }
+        ++size;
     }
 
     /** add the item to the back */
     public void addLast(Item item) {
         validateItem(item);
-        growIfNeeded();
-        q[tail] = item;
-        if (tail < maxSize) ++tail;
+        Node last = new Node(item);
+        if (isEmpty()) {
+            head.next = tail.next = last;
+        } else {
+            tail.next.next = last;
+            last.prev = tail.next;
+            tail.next = last;
+        }
+        ++size;
     }
 
     /** remove and return the item from the front */
@@ -81,11 +75,16 @@ public class Deque<Item> implements Iterable<Item> {
         if (isEmpty()) {
             throw new NoSuchElementException("No first element");
         }
-        Item t = q[head];
-        q[head] = null;
-        ++head;
-        shrinkIfNeeded();
-        return t;
+        Node first = head.next;
+        if (size == 1) {
+            // Becomes empty
+            head.next = tail.next = null;
+        } else {
+            head.next = first.next;
+            first.next.prev = head;
+        }
+        --size;
+        return first.item;
     }
 
     /** remove and return the item from the back */
@@ -93,26 +92,34 @@ public class Deque<Item> implements Iterable<Item> {
         if (isEmpty()) {
             throw new NoSuchElementException("No last element");
         }
-        Item t = q[tail];
-        q[tail] = null;
-        --tail;
-        shrinkIfNeeded();
-        return t;
+        Node last = tail.next;
+        if (size == 1) {
+            // Becomes empty
+            head.next = tail.next = null;
+        } else {
+            last.prev.next = null;
+            tail.next = last.prev;
+        }
+        return last.item;
     }
 
     private class DequeIterator implements Iterator<Item> {
-        private int i = head;
+        private Node node;
+
+        public DequeIterator() {
+            node = head.next;
+        }
 
         public boolean hasNext() {
-            return i <= tail;
+            return node != null;
         }
 
         public Item next() {
             if (!hasNext())
                 throw new NoSuchElementException("No such next element");
 
-            Item t = q[i];
-            ++i;
+            Item t = node.item;
+            node = node.next;
             return t;
         }
 
