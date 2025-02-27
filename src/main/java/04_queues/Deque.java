@@ -10,9 +10,13 @@ public class Deque<Item> implements Iterable<Item> {
     private int tail = 0;
     private int maxSize = 2;
 
+    private static Item[] createArray(int capacity) {
+        return (Item[]) new Object[capacity];
+    }
+
     /** construct an empty deque */
     public Deque() {
-        q = (Item[]) new Object[maxSize];
+        q = createArray(maxSize);
     }
 
     /** is the deque empty? */
@@ -25,11 +29,11 @@ public class Deque<Item> implements Iterable<Item> {
         return tail - head;
     }
 
-    private void rebuildArray() {
-        Item[] newItems = (Item[]) new Object[maxSize];
+    private void resize() {
+        Item[] newItems = createArray(maxSize)
         int newHead = maxSize / 4;
         int newTail = newHead;
-        for (int i = head; i < tail; ++i, ++newTail) {
+        for (int i = head; i <= tail; ++i, ++newTail) {
             newItems[newTail] = q[i];
         }
         q = newItems;
@@ -38,16 +42,16 @@ public class Deque<Item> implements Iterable<Item> {
     }
 
     private void growIfNeeded() {
-        if (head == 0 || tail + 1 == maxSize) {
+        if (head == 0 || tail == maxSize) {
             if (size() + 1 == maxSize) maxSize *= 2;
-            rebuildArray();
+            resize();
         }
     }
 
     private void shrinkIfNeeded() {
-        if (size() - 1 < maxSize / 4) {
+        if (size() < maxSize / 4) {
             maxSize /= 2;
-            rebuildArray();
+            resize();
         }
     }
 
@@ -60,8 +64,8 @@ public class Deque<Item> implements Iterable<Item> {
     public void addFirst(Item item) {
         validateItem(item);
         growIfNeeded();
-        --head;
         q[head] = item;
+        if (0 < head) --head;
     }
 
     /** add the item to the back */
@@ -69,7 +73,7 @@ public class Deque<Item> implements Iterable<Item> {
         validateItem(item);
         growIfNeeded();
         q[tail] = item;
-        ++tail;
+        if (tail < maxSize) ++tail;
     }
 
     /** remove and return the item from the front */

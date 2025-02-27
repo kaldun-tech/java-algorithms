@@ -9,12 +9,15 @@ public class RandomizedQueue<Item> implements Iterable<Item> {
     private Item[] q;
     private int head = 0;
     private int tail = 0;
-    private int size = 0;
     private int maxSize = 2;
+
+    private static Item[] createArray(int capacity) {
+        return (Item[]) new Object[capacity];
+    }
 
     // construct an empty randomized queue
     public RandomizedQueue() {
-        q = (Item[]) new Object[maxSize];
+        q = createArray(maxSize);
     }
 
     // is the randomized queue empty?
@@ -28,10 +31,10 @@ public class RandomizedQueue<Item> implements Iterable<Item> {
     }
 
     private void resize() {
-        Item[] newItems = (Item[]) new Object[maxSize];
+        Item[] newItems = createArray(maxSize);
         int newHead = maxSize / 4;
         int newTail = newHead;
-        for (int i = head; i < tail; ++i, ++newTail) {
+        for (int i = head; i <= tail; ++i, ++newTail) {
             newItems[newTail] = q[i];
         }
         q = newItems;
@@ -40,8 +43,8 @@ public class RandomizedQueue<Item> implements Iterable<Item> {
     }
 
     private void growIfNeeded() {
-        if (head == 0 || tail + 1 == maxSize) {
-            if (size() + 1 == maxSize) maxSize += 2;
+        if (head == 0 || tail == maxSize) {
+            if (size() + 1 == maxSize) maxSize *= 2;
             resize();
         }
     }
@@ -78,7 +81,7 @@ public class RandomizedQueue<Item> implements Iterable<Item> {
 
     private int getRandomPosition() {
         double probability = 1.0 / size();
-        for (int i = head; i < tail; ++i) {
+        for (int i = head; i <= tail; ++i) {
             if (StdRandom.bernoulli(probability))
                 return i;
         }
@@ -109,8 +112,8 @@ public class RandomizedQueue<Item> implements Iterable<Item> {
         int i = 0;
 
         public RandomizedQueueIterator() {
-            samples = (Item[]) new Object[size()];
-            for (int j = 0; j < size(); ++j) {
+            samples = createArray(size());
+            for (int j = 0; j < samples.length; ++j) {
                 samples[j] = sample();
             }
         }
