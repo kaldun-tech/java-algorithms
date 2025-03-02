@@ -13,11 +13,7 @@ public class RandomizedQueue<Item> implements Iterable<Item> {
 
     // construct an empty randomized queue
     public RandomizedQueue() {
-        q = createArray(MIN_SIZE);
-    }
-
-    private Item[] createArray(int capacity) {
-        return (Item[]) new Object[capacity];
+        q = (Item[]) new Object[MIN_SIZE];
     }
 
     // is the randomized queue empty?
@@ -32,8 +28,8 @@ public class RandomizedQueue<Item> implements Iterable<Item> {
 
     private void resize(int newSize) {
         newSize = Math.max(newSize, MIN_SIZE);
-        Item[] newQ = createArray(newSize);
-        for (int i = 0; i <= size; ++i) {
+        Item[] newQ = (Item[]) new Object[newSize];
+        for (int i = 0; i < size; ++i) {
             newQ[i] = q[i];
         }
         q = newQ;
