@@ -94,13 +94,13 @@ public class RandomizedQueue<Item> implements Iterable<Item> {
     }
 
     private class RandomizedQueueIterator implements Iterator<Item> {
-        int[] samples;
+        Item[] samples;
         int i = 0;
 
         public RandomizedQueueIterator() {
-            samples = new int[size()];
-            for (int j = 0; j < samples.length; ++j) {
-                samples[i] = i;
+            samples = (Item[]) new Object[size()];
+            for (int j = 0; j < size(); ++j) {
+                samples[i] = q[i];
             }
             StdRandom.shuffle(samples);
         }
@@ -113,10 +113,9 @@ public class RandomizedQueue<Item> implements Iterable<Item> {
             if (!hasNext())
                 throw new NoSuchElementException("No such next element");
 
-            int sample = samples[i];
-            Item n = q[sample];
+            Item next = samples[i];
             ++i;
-            return n;
+            return next;
         }
 
         public void remove() {
