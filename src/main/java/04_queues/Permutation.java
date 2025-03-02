@@ -7,17 +7,14 @@ public class Permutation {
      *  Prints exactly k of them, uniformly at random.
      *  Print each item from the sequence at most once. */
     public static void main(String[] args) {
-        StdOut.print("Enter integer k: ");
         int k = 0;
         try {
-            String str = StdIn.readString();
-            k = Integer.parseInt(str);
+            k = Integer.parseInt(args[0]);
         } catch (NumberFormatException e) {
             StdOut.println("Failed to read and parse k from input");
             return;
         }
 
-        StdOut.println("Enter sequence of strings:");
         RandomizedQueue<String> queue = new RandomizedQueue<>();
         while (!StdIn.isEmpty()) {
             String next = StdIn.readString();
@@ -27,6 +24,5 @@ public class Permutation {
         for (int i = 0; i < k; ++i) {
             StdOut.println(queue.dequeue());
         }
-        StdOut.println("Done!");
     }
 }

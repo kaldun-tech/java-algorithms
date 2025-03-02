@@ -66,7 +66,7 @@ public class RandomizedQueue<Item> implements Iterable<Item> {
     }
 
     private int getRandom() {
-        return StdRandom.uniform(size);
+        return StdRandom.uniformInt(size);
     }
 
     private Item pop(int pos) {
