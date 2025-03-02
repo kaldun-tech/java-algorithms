@@ -40,13 +40,17 @@ public class Deque<Item> implements Iterable<Item> {
             throw new IllegalArgumentException("Cannot add null item");
     }
 
+    private void setInitial(Node only) {
+        head.next = only;
+        tail.next = only;
+    }
+
     /** add the item to the front */
     public void addFirst(Item item) {
         validateItem(item);
         Node first = new Node(item);
         if (isEmpty()) {
-            // Set initial
-            head.next = tail.next = first;
+            setInitial(first);
         } else {
             // Link to existing
             head.next.prev = first;
@@ -61,7 +65,7 @@ public class Deque<Item> implements Iterable<Item> {
         validateItem(item);
         Node last = new Node(item);
         if (isEmpty()) {
-            head.next = tail.next = last;
+            setInitial(last);
         } else {
             tail.next.next = last;
             last.prev = tail.next;
@@ -78,7 +82,8 @@ public class Deque<Item> implements Iterable<Item> {
         Node first = head.next;
         if (size == 1) {
             // Becomes empty
-            head.next = tail.next = null;
+            head.next = null;
+            tail.next = null;
         } else {
             head.next = first.next;
             first.next.prev = head;
@@ -95,11 +100,13 @@ public class Deque<Item> implements Iterable<Item> {
         Node last = tail.next;
         if (size == 1) {
             // Becomes empty
-            head.next = tail.next = null;
+            head.next = null;
+            tail.next = null;
         } else {
             last.prev.next = null;
             tail.next = last.prev;
         }
+        --size;
         return last.item;
     }
 
