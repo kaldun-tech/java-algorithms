@@ -7,7 +7,7 @@ import edu.princeton.cs.algs4.SET;
  * check whether the three slopes between p and q, between p and r, and between
  * p and s are all equal.
  * Performance Requirement: The order of growth of the running time of your
- * program should be O(n^4)  * in the worst case, and it should use space
+ * program should be O(n^4) in the worst case, and it should use space
  * proportional to n plus the number of line segments returned.
  */
 public class BruteCollinearPoints {
@@ -29,21 +29,82 @@ public class BruteCollinearPoints {
         segments = new LineSegment[maxSegments];
         pointSet = new SET<Point>();
         verifyPointsAreUnique(points);
-        
     }
 
     private void verifyPointsAreUnique(Point[] points) {
         for (Point p : points) {
             if (p == null) {
                 throw new IllegalArgumentException("Point array has null point");
-            }
-            else if (pointSet.contains(p)) {
-                throw new IllegalArgumentException(
-                        "Point array has duplicate point " + p.toString());
-            }
-            else {
+            } else if (pointSet.contains(p)) {
+                throw new IllegalArgumentException("Point array has duplicate point " + p.toString());
+            } else {
                 pointSet.add(p);
             }
+        }
+    }
+
+    private void buildSegmentsForPoints(Point[] points) {
+        for (int i = 0; i < points.length - 3; ++i) {
+            Point p = points[i];
+            for (int j = 1; j < points.length - 2; ++j) {
+                Point q = points[j];
+                for (int k = 2; k < points.length - 1; ++k) {
+                    Point r = points[k];
+                    for (int m = 3; m < points.length; ++m) {
+                        Point s = points[m];
+                        LineSegments newSegments = getSegmentsForPoints(p, q, r, s);
+                        addSegments(newSegments);
+                    }
+                }
+            }
+        }
+    }
+
+    private void resizeSegments() {
+        int prevMax = maxSegments;
+        maxSegments *= 2;
+        LineSegment[] newSegments = new LineSegment[maxSegments];
+        for (int i = 0; i < prevMax; ++i) {
+            newSegments[i] = segments[i];
+        }
+        segments = newSegments;
+    }
+
+    /** Points are unique so a segment should not be collinear to a previous */
+    private void addSegments(LineSegment[] newSegments) {
+        for (LineSegment next : newSegments) {
+            /* for (LineSegment existing : segments) {
+                if (next == existing) continue;
+            } */
+            if (numSegments + 1 == maxSegments) resizeSegments();
+            segments[numSegments] = next;
+            ++numSegments;
+        }
+    }
+
+    private LineSegment[] getSegmentsForPoints(Point p, Point q, Point r, Point s) {
+        SlopeOrder order = p.slopeOrder();
+        int orderPQR = order.compareTo(q, r);
+        int orderPQS = order.compareTo(q, s);
+        int orderPRS = order.compareTo(r, s);
+        if (orderPQR == orderPRS) {
+            // All points are collinear
+            return new LineSegment[1] { new LineSegment(p, s) };
+        } else if (orderPQR == 0 || orderPQS == 0) {
+            // PQR or PQS is one segment
+            return new LineSegment[2] {
+                new LineSegment(p, r), new LineSegment(p, s)
+            };
+        } else if (orderPRS == 0) {
+            // PRS is one segment
+            return new LineSegment[2] {
+                new LineSegment(p, q), new LineSegment(p, s)
+            };
+        } else {
+            // All independent segments
+            return new LineSegment[3] {
+                new LineSegment(p, q), new LineSegment(p, r), new LineSegment(p, s)
+            };
         }
     }
 

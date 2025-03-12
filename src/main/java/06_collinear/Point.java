@@ -87,16 +87,13 @@ public class Point implements Comparable<Point> {
         if (compareTo(that) == 0) {
             // Points are equal -> negative infinity
             return Double.NEGATIVE_INFINITY;
-        }
-        else if (this.y == that.y) {
+        } else if (this.y == that.y) {
             // Horizontal line -> 0
             return 0.0;
-        }
-        else if (this.x == that.x) {
+        } else if (this.x == that.x) {
             // Vertical line -> positive infinity
             return Double.POSITIVE_INFINITY;
-        }
-        else {
+        } else {
             return 1.0 * (that.y - this.y) / (that.x - this.x);
         }
     }
@@ -104,9 +101,10 @@ public class Point implements Comparable<Point> {
     /**
      * Compare two points by slopes they make with this point. The slopeOrder()
      * method should return a comparator that compares its two argument points
-     * by the slopes they make with the invoking point (x0, y0). Formally, the
-     * point (x1, y1) is less than the point (x2, y2) if and only if the slope
-     * (y1 − y0) / (x1 − x0) is less than the slope (y2 − y0) / (x2 − x0).
+     * by the slopes they make with the invoking point (x0, y0).
+     * Formally, the point (x1, y1) is less than the point (x2, y2) if and only
+     * if the slope (y1 − y0) / (x1 − x0) is less than the slope
+     * (y2 − y0) / (x2 − x0).
      * Treat horizontal, vertical, and degenerate line segments as in the
      * slopeTo() method.
      */
@@ -115,15 +113,15 @@ public class Point implements Comparable<Point> {
     }
 
     private class SlopeOrder implements Comparator<Point> {
-        public int compare(Point p1, Point p2) {
-            if (p1 == null) {
+        public int compare(Point p, Point q) {
+            if (p == null) {
                 throw new IllegalArgumentException("SlopeOrder received null first point");
             }
-            else if (p2 == null) {
+            else if (q == null) {
                 throw new IllegalArgumentException("SlopeOrder received null second point");
             }
-            double slope1 = slopeTo(p1);
-            double slope2 = slopeTo(p2);
+            double slope1 = slopeTo(p);
+            double slope2 = slopeTo(q);
             return Double.compare(slope1, slope2);
         }
     }
