@@ -131,5 +131,82 @@ public class Point implements Comparable<Point> {
      */
     public static void main(String[] args) {
         /* YOUR CODE HERE */
+        testCompareTo();
+        testSlopeTo();
+        testSlopeOrder();
+    }
+
+    private static void testCompareTo() {
+        Point p = new Point(2, 2);
+        // Test null
+        try {
+            p.compareTo(null);
+            assert false;
+        } catch (IllegalArgumentException e) {
+            System.out.println("Caught expected exception for compareTo(null)");
+        }
+
+        // Same
+        assert p.compareTo(p) == 0;
+
+        // Greater X
+        Point right = new Point(4, 2);
+        assert p.compareTo(right) < 0;
+
+        // Greater Y
+        Point above = new Point(2, 4);
+        assert p.compareTo(above) < 0;
+
+        Point lowerLeft = new Point(1, 1);
+        assert 0 < p.compareTo(lowerLeft);
+    }
+
+    private static void testSlopeTo() {
+        Point p = new Point(1, 1);
+        // Test null
+        try {
+            p.slopeTo(null);
+            assert false;
+        } catch (IllegalArgumentException e) {
+            System.out.println("Caught expected exception for slopeTo(null)");
+        }
+
+        // Same point -> negative infinity
+        assert p.slopeTo(p) == Double.NEGATIVE_INFINITY;
+
+        // Horizontal line -> zero
+        Point q = new Point(5, 1);
+        assert p.slopeTo(q) == 0;
+        assert q.slopeTo(p) == 0;
+
+        // Vertical line -> positive infinity
+        q = new Point(1, 5);
+        assert p.slopeTo(q) == Double.POSITIVE_INFINITY;
+        assert q.slopeTo(p) == Double.POSITIVE_INFINITY;
+
+        // Normal
+        q = new Point(3, 3);
+        assert p.slopeTo(q) == 1;
+        assert q.slopeTo(p) == -1;
+    }
+
+    private static void testSlopeOrder() {
+        Point p = new Point(2, 2);
+        Point q = new Point(3, 3);
+        Point r = new Point(4, 4);
+        Point s = new Point(2, 5);
+        SlopeOrder o = p.slopeOrder();
+        try {
+            o.compare(q, null);
+            assert false;
+        } catch (IllegalArgumentException e) {
+            System.out.println("Caught expected exception for SlopeOrder o.compare(q, null)");
+        }
+        try {
+            o.compare(null, r);
+            assert false;
+        } catch (IllegalArgumentException e) {
+            System.out.println("Caught expected exception for SlopeOrder o.compare(null, r)");
+        }
     }
 }

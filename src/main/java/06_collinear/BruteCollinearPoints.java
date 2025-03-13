@@ -83,6 +83,9 @@ public class BruteCollinearPoints {
     }
 
     private LineSegment[] getSegmentsForPoints(Point p, Point q, Point r, Point s) {
+        double slopePQ = p.slopeTo(q);
+        double slopePR = p.slopeTo(r);
+        double slopePS = p.slopeTo(s);
         SlopeOrder order = p.slopeOrder();
         int orderPQR = order.compareTo(q, r);
         int orderPQS = order.compareTo(q, s);
