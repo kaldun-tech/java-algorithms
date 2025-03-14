@@ -1,5 +1,7 @@
 import java.util.Comparator;
 
+import edu.princeton.cs.algs4.StdDraw;
+
 /**
  * Create an immutable data type Point that represents a point in the plane.
  * use the data type Point.java, which implements the constructor and the
@@ -87,13 +89,16 @@ public class Point implements Comparable<Point> {
         if (compareTo(that) == 0) {
             // Points are equal -> negative infinity
             return Double.NEGATIVE_INFINITY;
-        } else if (this.y == that.y) {
+        }
+        else if (this.y == that.y) {
             // Horizontal line -> 0
             return 0.0;
-        } else if (this.x == that.x) {
+        }
+        else if (this.x == that.x) {
             // Vertical line -> positive infinity
             return Double.POSITIVE_INFINITY;
-        } else {
+        }
+        else {
             return 1.0 * (that.y - this.y) / (that.x - this.x);
         }
     }
@@ -130,10 +135,10 @@ public class Point implements Comparable<Point> {
      * Unit tests the Point data type.
      */
     public static void main(String[] args) {
-        /* YOUR CODE HERE */
         testCompareTo();
         testSlopeTo();
         testSlopeOrder();
+        System.out.println("All tests passed!");
     }
 
     private static void testCompareTo() {
@@ -142,7 +147,8 @@ public class Point implements Comparable<Point> {
         try {
             p.compareTo(null);
             assert false;
-        } catch (IllegalArgumentException e) {
+        }
+        catch (IllegalArgumentException e) {
             System.out.println("Caught expected exception for compareTo(null)");
         }
 
@@ -159,6 +165,8 @@ public class Point implements Comparable<Point> {
 
         Point lowerLeft = new Point(1, 1);
         assert 0 < p.compareTo(lowerLeft);
+
+        System.out.println("  compareTo tests passed");
     }
 
     private static void testSlopeTo() {
@@ -167,7 +175,8 @@ public class Point implements Comparable<Point> {
         try {
             p.slopeTo(null);
             assert false;
-        } catch (IllegalArgumentException e) {
+        }
+        catch (IllegalArgumentException e) {
             System.out.println("Caught expected exception for slopeTo(null)");
         }
 
@@ -188,6 +197,7 @@ public class Point implements Comparable<Point> {
         q = new Point(3, 3);
         assert p.slopeTo(q) == 1;
         assert q.slopeTo(p) == -1;
+        System.out.println("  slopeTo tests passed");
     }
 
     private static void testSlopeOrder() {
@@ -195,18 +205,37 @@ public class Point implements Comparable<Point> {
         Point q = new Point(3, 3);
         Point r = new Point(4, 4);
         Point s = new Point(2, 5);
-        SlopeOrder o = p.slopeOrder();
+        Comparator<Point> o = p.slopeOrder();
         try {
             o.compare(q, null);
             assert false;
-        } catch (IllegalArgumentException e) {
+        }
+        catch (IllegalArgumentException e) {
             System.out.println("Caught expected exception for SlopeOrder o.compare(q, null)");
         }
         try {
             o.compare(null, r);
             assert false;
-        } catch (IllegalArgumentException e) {
+        }
+        catch (IllegalArgumentException e) {
             System.out.println("Caught expected exception for SlopeOrder o.compare(null, r)");
         }
+
+        // Degenerate case
+        double result = o.compare(p, p);
+        assert result == 0;
+
+        // Same line
+        result = o.compare(q, r);
+        assert result == 0;
+
+        // Zero < positive
+        result = o.compare(q, s);
+        assert 0 < result;
+
+        result = o.compare(s, r);
+        assert result < 0;
+
+        System.out.println("  SlopeOrder tests passed");
     }
 }
