@@ -1,4 +1,10 @@
 import edu.princeton.cs.algs4.SET;
+import edu.princeton.cs.algs4.In;
+import edu.princeton.cs.algs4.StdDraw;
+import edu.princeton.cs.algs4.StdOut;
+
+import java.util.Arrays;
+import java.util.Comparator;
 
 /**
  * Write a program BruteCollinearPoints.java that examines 4 points at a time
@@ -29,30 +35,35 @@ public class BruteCollinearPoints {
         segments = new LineSegment[maxSegments];
         pointSet = new SET<Point>();
         verifyPointsAreUnique(points);
+        buildSegmentsForPoints(points);
     }
 
     private void verifyPointsAreUnique(Point[] points) {
         for (Point p : points) {
             if (p == null) {
                 throw new IllegalArgumentException("Point array has null point");
-            } else if (pointSet.contains(p)) {
-                throw new IllegalArgumentException("Point array has duplicate point " + p.toString());
-            } else {
+            }
+            else if (pointSet.contains(p)) {
+                throw new IllegalArgumentException(
+                        "Point array has duplicate point " + p.toString());
+            }
+            else {
                 pointSet.add(p);
             }
         }
     }
 
+    /** Builds LineSegment array for Point array O(n^4) */
     private void buildSegmentsForPoints(Point[] points) {
         for (int i = 0; i < points.length - 3; ++i) {
             Point p = points[i];
-            for (int j = 1; j < points.length - 2; ++j) {
+            for (int j = i + 1; j < points.length - 2; ++j) {
                 Point q = points[j];
-                for (int k = 2; k < points.length - 1; ++k) {
+                for (int k = j + 1; k < points.length - 1; ++k) {
                     Point r = points[k];
-                    for (int m = 3; m < points.length; ++m) {
+                    for (int m = k + 1; m < points.length; ++m) {
                         Point s = points[m];
-                        LineSegments newSegments = getSegmentsForPoints(p, q, r, s);
+                        LineSegment[] newSegments = getSegmentsForPoints(p, q, r, s);
                         addSegments(newSegments);
                     }
                 }
@@ -60,6 +71,7 @@ public class BruteCollinearPoints {
         }
     }
 
+    /** Grows the segments array */
     private void resizeSegments() {
         int prevMax = maxSegments;
         maxSegments *= 2;
@@ -70,54 +82,70 @@ public class BruteCollinearPoints {
         segments = newSegments;
     }
 
-    /** Points are unique so a segment should not be collinear to a previous */
+    /**
+     * Adds segments in an array to the end of existing array O(n)
+     * Points are unique so a segment should not be collinear to a previous
+     */
     private void addSegments(LineSegment[] newSegments) {
         for (LineSegment next : newSegments) {
-            /* for (LineSegment existing : segments) {
-                if (next == existing) continue;
-            } */
+            if (next == null) {
+                System.out.println("Unexpected null segment");
+                continue;
+            }
             if (numSegments + 1 == maxSegments) resizeSegments();
             segments[numSegments] = next;
             ++numSegments;
         }
     }
 
+    private void debugPoints(Point[] points) {
+        StringBuilder sb = new StringBuilder("Points: [ ");
+        for (Point p : points) {
+            sb.append(p).append(", ");
+        }
+        sb.append(" ]");
+        System.out.println(sb.toString());
+    }
+
     private LineSegment[] getSegmentsForPoints(Point p, Point q, Point r, Point s) {
         double slopePQ = p.slopeTo(q);
         double slopePR = p.slopeTo(r);
         double slopePS = p.slopeTo(s);
-        SlopeOrder order = p.slopeOrder();
-        int orderPQR = order.compareTo(q, r);
-        int orderPQS = order.compareTo(q, s);
-        int orderPRS = order.compareTo(r, s);
+        Comparator<Point> order = p.slopeOrder();
+        int orderPQR = order.compare(q, r);
+        int orderPQS = order.compare(q, s);
+        int orderPRS = order.compare(r, s);
         if (orderPQR == orderPRS) {
             // All points are collinear
-            return new LineSegment[1] { new LineSegment(p, s) };
-        } else if (orderPQR == 0 || orderPQS == 0) {
+            return new LineSegment[] { new LineSegment(p, s) };
+        }
+        else if (orderPQR == 0 || orderPQS == 0) {
             // PQR or PQS is one segment
-            return new LineSegment[2] {
-                new LineSegment(p, r), new LineSegment(p, s)
+            return new LineSegment[] {
+                    new LineSegment(p, r), new LineSegment(p, s)
             };
-        } else if (orderPRS == 0) {
+        }
+        else if (orderPRS == 0) {
             // PRS is one segment
-            return new LineSegment[2] {
-                new LineSegment(p, q), new LineSegment(p, s)
+            return new LineSegment[] {
+                    new LineSegment(p, q), new LineSegment(p, s)
             };
-        } else {
+        }
+        else {
             // All independent segments
-            return new LineSegment[3] {
-                new LineSegment(p, q), new LineSegment(p, r), new LineSegment(p, s)
+            return new LineSegment[] {
+                    new LineSegment(p, q), new LineSegment(p, r), new LineSegment(p, s)
             };
         }
     }
 
-    /** The number of line segments */
+    /** Get the number of line segments */
     public int numberOfSegments() {
         return numSegments;
     }
 
     /**
-     * The line segments. The method segments() should include each line segment
+     * Get the line segments. The method segments() should include each line segment
      * containing 4 points exactly once. If 4 points appear on a line segment in
      * the order p→q→r→s, then you should include either the line segment p→s or
      * s→p (but not both) and you should not include subsegments such as p→r or q→r.
@@ -125,7 +153,7 @@ public class BruteCollinearPoints {
      * that has 5 or more collinear points.
      */
     public LineSegment[] segments() {
-        return segments;
+        return Arrays.copyOf(segments, numSegments);
     }
 
     /** Sample client for brute force */
