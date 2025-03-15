@@ -118,15 +118,15 @@ public class Point implements Comparable<Point> {
     }
 
     private class SlopeOrder implements Comparator<Point> {
-        public int compare(Point p, Point q) {
-            if (p == null) {
+        public int compare(Point q, Point r) {
+            if (q == null) {
                 throw new IllegalArgumentException("SlopeOrder received null first point");
             }
-            else if (q == null) {
+            else if (r == null) {
                 throw new IllegalArgumentException("SlopeOrder received null second point");
             }
-            double slope1 = slopeTo(p);
-            double slope2 = slopeTo(q);
+            double slope1 = slopeTo(q);
+            double slope2 = slopeTo(r);
             return Double.compare(slope1, slope2);
         }
     }

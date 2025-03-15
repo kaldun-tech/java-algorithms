@@ -111,21 +111,17 @@ public class BruteCollinearPoints {
         double slopePQ = p.slopeTo(q);
         double slopePR = p.slopeTo(r);
         double slopePS = p.slopeTo(s);
-        Comparator<Point> order = p.slopeOrder();
-        int orderPQR = order.compare(q, r);
-        int orderPQS = order.compare(q, s);
-        int orderPRS = order.compare(r, s);
-        if (orderPQR == orderPRS) {
+        if (slopePQ == slopePR && slopePR == slopePS) {
             // All points are collinear
             return new LineSegment[] { new LineSegment(p, s) };
         }
-        else if (orderPQR == 0 || orderPQS == 0) {
+        else if (slopePQ == slopePR || slopePQ == slopePS) {
             // PQR or PQS is one segment
             return new LineSegment[] {
                     new LineSegment(p, r), new LineSegment(p, s)
             };
         }
-        else if (orderPRS == 0) {
+        else if (slopePR == slopePS) {
             // PRS is one segment
             return new LineSegment[] {
                     new LineSegment(p, q), new LineSegment(p, s)
