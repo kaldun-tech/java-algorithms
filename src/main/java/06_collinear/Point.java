@@ -64,7 +64,7 @@ public class Point implements Comparable<Point> {
      */
     public int compareTo(Point that) {
         if (that == null) {
-            throw new IllegalArgumentException("compareTo received null input");
+            throw new NullPointerException("compareTo received null input");
         }
         if (this.y < that.y || (this.y == that.y && this.x < that.x)) return -1;
         else if (this.y == that.y && this.x == that.x) return 0;
@@ -84,7 +84,7 @@ public class Point implements Comparable<Point> {
      */
     public double slopeTo(Point that) {
         if (that == null) {
-            throw new IllegalArgumentException("slopeTo received null input");
+            throw new NullPointerException("slopeTo received null input");
         }
         if (compareTo(that) == 0) {
             // Points are equal -> negative infinity
@@ -120,10 +120,10 @@ public class Point implements Comparable<Point> {
     private class SlopeOrder implements Comparator<Point> {
         public int compare(Point q, Point r) {
             if (q == null) {
-                throw new IllegalArgumentException("SlopeOrder received null first point");
+                throw new NullPointerException("SlopeOrder received null first point");
             }
             else if (r == null) {
-                throw new IllegalArgumentException("SlopeOrder received null second point");
+                throw new NullPointerException("SlopeOrder received null second point");
             }
             double slope1 = slopeTo(q);
             double slope2 = slopeTo(r);
@@ -148,7 +148,7 @@ public class Point implements Comparable<Point> {
             p.compareTo(null);
             assert false;
         }
-        catch (IllegalArgumentException e) {
+        catch (NullPointerException e) {
             System.out.println("Caught expected exception for compareTo(null)");
         }
 
@@ -176,7 +176,7 @@ public class Point implements Comparable<Point> {
             p.slopeTo(null);
             assert false;
         }
-        catch (IllegalArgumentException e) {
+        catch (NullPointerException e) {
             System.out.println("Caught expected exception for slopeTo(null)");
         }
 
@@ -205,35 +205,36 @@ public class Point implements Comparable<Point> {
         Point q = new Point(3, 3);
         Point r = new Point(4, 4);
         Point s = new Point(2, 5);
-        Comparator<Point> o = p.slopeOrder();
+        Comparator<Point> order = p.slopeOrder();
+        double result;
         try {
-            o.compare(q, null);
+            result = order.compare(q, null);
             assert false;
         }
-        catch (IllegalArgumentException e) {
+        catch (NullPointerException e) {
             System.out.println("Caught expected exception for SlopeOrder o.compare(q, null)");
         }
         try {
-            o.compare(null, r);
+            result = order.compare(null, r);
             assert false;
         }
-        catch (IllegalArgumentException e) {
+        catch (NullPointerException e) {
             System.out.println("Caught expected exception for SlopeOrder o.compare(null, r)");
         }
 
         // Degenerate case
-        double result = o.compare(p, p);
+        result = order.compare(p, p);
         assert result == 0;
 
         // Same line
-        result = o.compare(q, r);
+        result = order.compare(q, r);
         assert result == 0;
 
         // Zero < positive
-        result = o.compare(q, s);
+        result = order.compare(q, s);
         assert 0 < result;
 
-        result = o.compare(s, r);
+        result = order.compare(s, r);
         assert result < 0;
 
         System.out.println("  SlopeOrder tests passed");
