@@ -1,4 +1,3 @@
-import edu.princeton.cs.algs4.SET;
 import edu.princeton.cs.algs4.In;
 import edu.princeton.cs.algs4.Stack;
 import edu.princeton.cs.algs4.StdDraw;
@@ -8,120 +7,207 @@ import java.util.Arrays;
 import java.util.Comparator;
 
 /**
- * Remarkably, it is possible to solve the problem much faster than the
- * brute-force solution described above. Given a point origin, the following method4
- * determines whether origin participates in a set of 4 or more collinear points.
- * 1. Think of origin as the origin.
- * 2. For each other point destination, determine the slope it makes with origin.
- * 3. Sort the points according to the slopes they makes with origin
- * 4. Check if any 3 (or more) adjacent points in the sorted order have equal
- * slopes with respect to origin. If so, these points, together with origin, are collinear.
- * Applying this method for each of the n points in turn yields an efficient
- * algorithm to the problem. The algorithm solves the problem because points
- * that have equal slopes with respect to origin are collinear, and sorting brings
- * such points together. The algorithm is fast because the bottleneck operation is sorting.
- * <origin>
- * Performance requirement. The order of growth of the running time of your program should
- * be O(n^2 log n) in the worst case and it should use space proportional to n plus the
- * number of line segments returned. FastCollinearPoints should work properly even if the
- * input has 5 or more collinear points.
+ * FastCollinearPoints implements a fast algorithm for finding all line segments
+ * containing 4 or more collinear points in a set of points.
+ * 
+ * Algorithm overview:
+ * 1. For each point p as origin:
+ *    a. Calculate the slope between p and all other points
+ *    b. Sort the points by slope
+ *    c. Find groups of points with the same slope (collinear points)
+ *    d. If a group has 3 or more points (plus origin = 4+ points), create a line segment
+ * 
+ * Time complexity: O(n^2 log n) where n is the number of points
+ * Space complexity: O(n) plus space for the output segments
+ * 
+ * The algorithm ensures that:
+ * - Each maximal line segment is reported exactly once
+ * - Subsegments are not included in the output
+ * - The implementation handles 5 or more collinear points correctly
  */
 public class FastCollinearPoints {
-    private Stack<LineSegment> segments;
-    private SET<Point> pointSet;
+    private final LineSegment[] segmentsArray;
 
     /**
-     * Finds all line segments containing 4 or more points. Throw an IllegalArgumentException
-     * if the argument to the constructor is null, if any point in the array is null,
-     * or if the argument to the constructor contains a repeated point.
+     * Finds all line segments containing 4 or more points.
+     * 
+     * @param points Array of points to analyze
+     * @throws IllegalArgumentException if the argument is null, contains null points,
+     *                                  or contains repeated points
      */
     public FastCollinearPoints(Point[] points) {
         if (points == null) {
             throw new IllegalArgumentException("Constructor received null input");
         }
-        segments = new Stack<LineSegment>();
-        pointSet = new SET<Point>();
-        verifyPointsAreUnique(points);
-        buildSegmentsForPoints(points);
-    }
-
-    private void verifyPointsAreUnique(Point[] points) {
+        
+        // Check for null points
         for (Point p : points) {
             if (p == null) {
                 throw new IllegalArgumentException("Point array has null point");
             }
-            else if (pointSet.contains(p)) {
-                throw new IllegalArgumentException(
-                        "Point array has duplicate point " + p.toString());
-            }
-            else {
-                pointSet.add(p);
-            }
         }
-    }
-
-
-    /**
-     * Builds LineSegment array for Point array O(n^2 log n)
-     * Given a point origin, the following method determines whether origin participates
-     * in a set of 4 or more collinear points.
-     * Think of origin as the origin
-     * For each other point destination, determine the slope it makes with origin.
-     * Sort the points according to the slopes they makes with origin
-     * Check if any 3 (or more) adjacent points in the sorted order have equal
-     * slopes with respect to origin. If so, these points, together with origin, are collinear.
-     * Applying this method for each of the n points in turn yields an efficient
-     * algorithm to the problem. The algorithm solves the problem because points
-     * that have equal slopes with respect to origin are collinear, and sorting brings
-     * such points together. The algorithm is fast because the bottleneck operation is sorting.
-     */
-    private void buildSegmentsForPoints(Point[] points) {
-        for (int i = 0; i < points.length - 3; ++i) {
-            Point origin = points[i];
-            Comparator<Point> slopeOrder = origin.slopeOrder();
-            Point[] destinations = Arrays.copyOfRange(points, i + 1, points.length);
-            Arrays.sort(destinations, slopeOrder);
-            addCollinearSegments(origin, destinations);
+        
+        // Make a proper defensive copy of the input array
+        Point[] pointsCopy = new Point[points.length];
+        for (int i = 0; i < points.length; i++) {
+            pointsCopy[i] = points[i];
         }
-    }
-
-    private void addCollinearSegments(Point p, Point[] destinations) {
-        double prevSlope = Double.NEGATIVE_INFINITY;
-        for (Point q : destinations) {
-            double nextSlope = p.slopeTo(q);
-            if (prevSlope == Double.NEGATIVE_INFINITY) {
-                // First element -> continue
-                prevSlope = nextSlope;
-            }
-            else if (prevSlope != nextSlope) {
-                // Different slope -> not collinear -> Add segment
-                LineSegment seg = new LineSegment(p, q);
-                segments.push(seg);
-                prevSlope = nextSlope;
-            }
-            // Else same slope -> collinear -> no op
-        }
-    }
-
-    /** The number of line segments */
-    public int numberOfSegments() {
-        return segments.size();
-    }
-
-    /**
-     * The method segments() should include each maximal line segment containing
-     * 4 (or more) points exactly once. For example, if 5 points appear on a line
-     * segment in the order origin→destination→r→s→t, then do not include the subsegments origin→s
-     * or destination→t.
-     */
-    public LineSegment[] segments() {
-        LineSegment[] asArray = new LineSegment[numberOfSegments()];
+        
+        // Check for duplicate points
+        Arrays.sort(pointsCopy);
+        checkForDuplicatePoints(pointsCopy);
+        
+        // Find all line segments
+        Stack<LineSegment> segments = findAllLineSegments(pointsCopy);
+        
+        // Convert stack to array for immutability
+        segmentsArray = new LineSegment[segments.size()];
         int i = 0;
         for (LineSegment seg : segments) {
-            asArray[i] = seg;
-            ++i;
+            segmentsArray[i++] = seg;
         }
-        return asArray;
+    }
+
+    /**
+     * Checks for duplicate points in a sorted array of points.
+     * 
+     * @param points Sorted array of points
+     * @throws IllegalArgumentException if duplicate points are found
+     */
+    private void checkForDuplicatePoints(Point[] points) {
+        for (int i = 0; i < points.length - 1; i++) {
+            if (points[i].compareTo(points[i + 1]) == 0) {
+                throw new IllegalArgumentException("Duplicate point " + points[i].toString());
+            }
+        }
+    }
+    
+    /**
+     * Finds all line segments containing 4 or more collinear points.
+     * 
+     * @param points Array of points to analyze
+     * @return Stack of LineSegment objects
+     */
+    private Stack<LineSegment> findAllLineSegments(Point[] points) {
+        Stack<LineSegment> segments = new Stack<>();
+        int n = points.length;
+        
+        // For each point as origin
+        for (int i = 0; i < n; i++) {
+            Point origin = points[i];
+            
+            // Create and sort array of other points by slope to origin
+            Point[] otherPoints = getOtherPointsSortedBySlope(origin, points, i);
+            
+            // Find collinear points and add segments
+            findCollinearPointsForOrigin(origin, otherPoints, segments);
+        }
+        
+        return segments;
+    }
+    
+    /**
+     * Creates an array of all points except the origin point and sorts them by slope to origin.
+     * 
+     * @param origin The origin point
+     * @param points All points
+     * @param originIndex Index of the origin point in the points array
+     * @return Array of all other points sorted by slope to origin
+     */
+    private Point[] getOtherPointsSortedBySlope(Point origin, Point[] points, int originIndex) {
+        int n = points.length;
+        
+        // Create an array of all other points with their slopes to origin
+        Point[] otherPoints = new Point[n - 1];
+        int idx = 0;
+        for (int i = 0; i < n; i++) {
+            if (i != originIndex) {
+                otherPoints[idx++] = points[i];
+            }
+        }
+        
+        // Sort by slope relative to origin
+        Arrays.sort(otherPoints, origin.slopeOrder());
+        
+        return otherPoints;
+    }
+    
+    /**
+     * Finds groups of collinear points for a given origin and adds line segments
+     * for groups with 4 or more collinear points (including origin).
+     * 
+     * @param origin The origin point
+     * @param otherPoints Array of points sorted by slope to origin
+     * @param segments Stack to add line segments to
+     */
+    private void findCollinearPointsForOrigin(Point origin, Point[] otherPoints, Stack<LineSegment> segments) {
+        int n = otherPoints.length;
+        int count = 1;
+
+        for (int i = 0; i < n; i += count) {
+            // Find all points with the same slope
+            double currentSlope = origin.slopeTo(otherPoints[i]);
+            // Count includes the current point
+            count = 1; 
+            
+            // Count points with the same slope
+            while (i + count < n && origin.slopeTo(otherPoints[i + count]) == currentSlope) {
+                count++;
+            }
+            
+            // If we have at least 3 points with the same slope (plus origin = 4 points)
+            if (count >= 3) {
+                addMaximalSegmentIfNeeded(origin, otherPoints, i, count, segments);
+            }
+        }
+    }
+    
+    /**
+     * Creates and adds a maximal line segment if the origin is the minimum point
+     * in the collinear set.
+     * 
+     * @param origin The origin point
+     * @param otherPoints Array of points sorted by slope to origin
+     * @param startIndex Start index of collinear points in otherPoints
+     * @param count Number of collinear points
+     * @param segments Stack to add line segments to
+     */
+    private void addMaximalSegmentIfNeeded(Point origin, Point[] otherPoints, int startIndex, 
+                                         int count, Stack<LineSegment> segments) {
+        // Create array with origin and all collinear points
+        Point[] collinearPoints = new Point[count + 1];
+        collinearPoints[0] = origin;
+        for (int k = 0; k < count; k++) {
+            collinearPoints[k + 1] = otherPoints[startIndex + k];
+        }
+        
+        // Sort by natural ordering
+        Arrays.sort(collinearPoints);
+        
+        // Only add the segment if origin is the minimum point. This ensures we only add each maximal segment once
+        if (collinearPoints[0].compareTo(origin) == 0) {
+            segments.push(new LineSegment(collinearPoints[0], collinearPoints[count]));
+        }
+    }
+
+    /**
+     * Returns the number of line segments found.
+     * 
+     * @return Number of line segments
+     */
+    public int numberOfSegments() {
+        return segmentsArray.length;
+    }
+
+    /**
+     * Returns an array of all line segments found.
+     * Each maximal line segment containing 4 or more points is included exactly once.
+     * 
+     * @return Array of line segments
+     */
+    public LineSegment[] segments() {
+        // Return a defensive copy to maintain immutability
+        return segmentsArray.clone();
     }
 
     /**
