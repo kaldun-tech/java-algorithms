@@ -122,15 +122,14 @@ public class Percolation {
 
     /** Validates that a row-column pair is in range [1, n] */
     private void validateRowCol(int row, int col) {
+        StringBuilder sb;
         if (row < 1 || n < row) {
-            StringBuilder sb = new StringBuilder("Row ")
-                    .append(row)
+            sb = new StringBuilder("Row ").append(row)
                     .append(" must be positive and less than n");
             throw new IllegalArgumentException(sb.toString());
         }
         else if (col < 1 || n < col) {
-            StringBuilder sb = new StringBuilder("Column ")
-                    .append(col)
+            sb = new StringBuilder("Column ").append(col)
                     .append(" must be positive and less than n");
             throw new IllegalArgumentException(sb.toString());
         }
