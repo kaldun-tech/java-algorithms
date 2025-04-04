@@ -17,7 +17,7 @@
  *  ant bear cat dog
  *  emu fox goat horse
  *
- *  java-algs4 RandomWord < animals8.txt
+ *  java -cp C:\path\to\algs4.jar RandomWord < animals8.txt
  *  emu
  */
 
