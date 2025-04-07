@@ -1,3 +1,5 @@
+import edu.princeton.cs.algs4.Queue;
+
 /**
  * Write a program to solve the 8-puzzle problem (and its natural generalizations) using the A* search algorithm
  *
@@ -48,24 +50,48 @@ public class Board {
         return sb.toString();
     }
 
-    // Board dimension n
+    /**
+     * Board dimension n
+     * @return the dimension of the board
+     */
     public int dimension() {
-        return tiles.length();
+        return tiles.length;
     }
 
-    // Number of tiles out of place
+    /**
+     * Number of tiles out of place
+     * @return the number of tiles out of place
+     */
     public int hamming() {
+        int count = 0;
         for (int i = 0; i < dimension(); ++i) {
             for (int j = 0; j < dimension(); ++j) {
-
+                int value = tiles[i][j];
+                if (value != 0 && value != (i * dimension() + j + 1)) {
+                    count++;
+                }
             }
         }
+        return count;
     }
 
-    /** Sum of Manhattan distances between tiles and goal. Theis is defined as the
-     *  sum of the vertical and horizontal distance from the tiles to their goal position */
+    /** Sum of Manhattan distances between tiles and goal. This is defined as the
+     *  sum of the vertical and horizontal distance from the tiles to their goal position 
+     *  @return the sum of Manhattan distances between tiles and goal
+     */
     public int manhattan() {
-
+        int sum = 0;
+        for (int i = 0; i < dimension(); i++) {
+            for (int j = 0; j < dimension(); j++) {
+                int value = tiles[i][j];
+                if (value != 0) { // Skip the blank tile
+                    int goalRow = (value - 1) / dimension();
+                    int goalCol = (value - 1) % dimension();
+                    sum += Math.abs(i - goalRow) + Math.abs(j - goalCol);
+                }
+            }
+        }
+        return sum;
     }
 
     /** Is this board the goal board? */
@@ -97,15 +123,69 @@ public class Board {
 
     /** Get all neighboring boards. Depending on the location of the blank
      * square, a board can have 2, 3, or 4 neighbors
-     * @return
+     * @return an iterable of all neighboring boards
      */
     public Iterable<Board> neighbors() {
-
+        Queue<Board> neighbors = new Queue<>();
+        
+        // Try moving blank in all four directions
+        int[][] directions = {{-1, 0}, {1, 0}, {0, -1}, {0, 1}};
+        
+        for (int[] dir : directions) {
+            int newRow = blankRow + dir[0];
+            int newCol = blankCol + dir[1];
+            
+            // Check if the new position is valid
+            if (newRow >= 0 && newRow < dimension() && newCol >= 0 && newCol < dimension()) {
+                // Create a copy of the tiles
+                int[][] newTiles = new int[dimension()][dimension()];
+                for (int i = 0; i < dimension(); i++) {
+                    for (int j = 0; j < dimension(); j++) {
+                        newTiles[i][j] = tiles[i][j];
+                    }
+                }
+                
+                // Swap the blank with the adjacent tile
+                newTiles[blankRow][blankCol] = newTiles[newRow][newCol];
+                newTiles[newRow][newCol] = 0;
+                
+                neighbors.enqueue(new Board(newTiles));
+            }
+        }
+        
+        return neighbors;
     }
 
-    // A board that is obtained by exchanging any pair of tiles
+    /**
+     * A board that is obtained by exchanging any pair of tiles
+     * @return a board that is obtained by exchanging any pair of tiles
+     */
     public Board twin() {
-
+        int[][] twinTiles = new int[dimension()][dimension()];
+        
+        // Copy the tiles
+        for (int i = 0; i < dimension(); i++) {
+            for (int j = 0; j < dimension(); j++) {
+                twinTiles[i][j] = tiles[i][j];
+            }
+        }
+        
+        // Find two non-blank tiles to swap
+        int row1 = 0, col1 = 0;
+        int row2 = 0, col2 = 1;
+        
+        // If one of these is the blank, move to the next row
+        if (twinTiles[row1][col1] == 0 || twinTiles[row2][col2] == 0) {
+            row1 = 1;
+            row2 = 1;
+        }
+        
+        // Swap the tiles
+        int temp = twinTiles[row1][col1];
+        twinTiles[row1][col1] = twinTiles[row2][col2];
+        twinTiles[row2][col2] = temp;
+        
+        return new Board(twinTiles);
     }
 
     // unit testing (not graded)

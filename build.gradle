@@ -4,16 +4,64 @@ plugins {
     id 'application'
 }
 
-application {
-    mainClass = 'PercolationStats'
+java {
+    sourceCompatibility = JavaVersion.VERSION_11
+    targetCompatibility = JavaVersion.VERSION_11
 }
 
 repositories {
     mavenCentral()
 }
 
-dependencies {
-    implementation fileTree(dir: 'lib', include: 'algs4.jar')
+sourceSets {
+    main {
+        java {
+            srcDirs = ['src/main/java']
+        }
+    }
+    test {
+        java {
+            srcDirs = ['test']
+        }
+    }
 }
 
-test {}
+dependencies {
+    implementation fileTree(dir: 'lib', include: 'algs4.jar')
+    testImplementation 'junit:junit:4.13.2'
+}
+
+// Define tasks for specific packages
+task runPuzzleSolver(type: JavaExec) {
+    group = 'application'
+    description = 'Runs the 8-Puzzle Solver'
+    classpath = sourceSets.main.runtimeClasspath
+    main = 'Solver'
+    workingDir = file('src/main/java/08_puzzle')
+}
+
+task runBST(type: JavaExec) {
+    group = 'application'
+    description = 'Runs the Binary Search Tree'
+    classpath = sourceSets.main.runtimeClasspath
+    main = 'BinarySearchTree'
+    workingDir = file('src/main/java/techlead_bst')
+}
+
+// Default application configuration
+application {
+    mainClass = 'PercolationStats'
+}
+
+// Compile task configurations
+tasks.withType(JavaCompile) {
+    options.encoding = 'UTF-8'
+    options.compilerArgs += ['-Xlint:unchecked', '-Xlint:deprecation']
+}
+
+test {
+    useJUnit()
+    testLogging {
+        events "passed", "skipped", "failed"
+    }
+}

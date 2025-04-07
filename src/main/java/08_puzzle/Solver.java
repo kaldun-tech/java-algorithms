@@ -1,4 +1,5 @@
-
+import edu.princeton.cs.algs4.In;
+import edu.princeton.cs.algs4.StdOut;
 
 public class Solver {
 
@@ -9,17 +10,17 @@ public class Solver {
 
     // is the initial board solvable? (see below)
     public boolean isSolvable() {
-
+        return false;
     }
 
     // min number of moves to solve initial board; -1 if unsolvable
     public int moves() {
-
+        return -1;
     }
 
     // sequence of boards in a shortest solution; null if unsolvable
     public Iterable<Board> solution() {
-
+        return null;
     }
 
     // test client
