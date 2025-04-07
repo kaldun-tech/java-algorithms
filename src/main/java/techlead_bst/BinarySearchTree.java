@@ -1,212 +1,358 @@
-import edu.princeton.cs.algs4.Stack;
+import java.util.Iterator;
+
+import edu.princeton.cs.algs4.Queue;
+import edu.princeton.cs.algs4.StdRandom;
 
 public class BinarySearchTree {
-    private TreeNode root = null;
+    private Node root = null;
 
-    private TreeNode add(TreeNode node, int value) {
-        if (node == null) {
+    private Node add(int key, Node n) {
+        if (n == null) {
             // Create leaf here
-            return new TreeNode(value);
-        } else if (value < root.value) {
-            node.left = add(node.left, value);
-        } else if (root.value < value) {
-            node.right = add(node.right, value);
+            return new Node(key);
+        }
+        int cmp = Integer.compare(key, n.key);
+        if (cmp < 0) {
+            n.left = add(key, n.left);
+        } else if (0 < cmp) {
+            n.right = add(key, n.right);
         } else {
             // Set -> don't add duplicates
-            return node;
+            return n;
         }
 
-        // Update height
-        node.height = height(node);
-        return node;
+        return n;
     }
 
-    public void add(int value) {
-        add(root, value);
+    /**
+     * Adds a key to the tree. Skips duplicates.
+     * @param key
+     */
+    public void add(int key) {
+        add(key, root);
     }
 
-    private TreeNode search(TreeNode node, int value) {
-        if (node == null) {
+    private Node search(int key, Node n) {
+        if (n == null) {
             // Not found
             return null;
-        } else if (node.value == value) {
-            return node;
-        } else if (value < node.value) {
-            return search(value, node.left);
+        }
+        int cmp = Integer.compare(key, n.key);
+        if (cmp == 0) {
+            return n;
+        } else if (cmp < 0) {
+            return search(key, n.left);
         } else {
-            return search(value, node.right);
+            // 0 < cmp
+            return search(key, n.right);
         }
     }
 
-    public TreeNode search(int value) {
-        return search(value, root);
+    /**
+     * Search for a key
+     * @param key
+     * @return
+     */
+    public Node search(int key) {
+        return search(key, root);
     }
 
-    private void doDelete(TreeNode toDelete, TreeNode parent) {
-        if (toDelete == null) {
-            throw new IllegalArgumentException("Cannot delete null node");
-        } else if (!(toDelete == parent.left || toDelete == parent.right)) {
-            throw new IllegalArgumentException("Node to delete is not direct child of input parent");
-        } else if (parent == null) {
-            // Remove the only leaf node
-            root = null;
-        } else if (toDelete.isLeaf()) {
-            // Remove the leaf node from its parent
-            if (toDelete == parent.left) {
-                parent.left = null;
-            } else {
-                parent.right = null;
-            }
-        } else if (!(toDelete.left == null || toDelete.right == null)) {
-            // Node has both children so need to replace it with its successor
-            TreeNode successor = getSuccessorNode(toDelete);
-            
+    private Node min(Node n) {
+        Node less;
+        for (less = n; less != null && less.left != null; less = less.left) {}
+        return less;
+    }
+
+    /**
+     * Get minimum key or zero on failure
+     * @return
+     */
+    public int min() {
+        Node n = min(root);
+        return (n == null) ? 0 : n.key;
+    }
+
+    private Node max(Node n) {
+        Node gtr;
+        for (gtr = n; gtr != null && gtr.right != null; gtr = gtr.right) {}
+        return gtr;
+    }
+
+    /**
+     * Get maximum key or zero on failure
+     * @return
+     */
+    public int max() {
+        Node n = max(root);
+        return (n == null) ? 0 : n.key;
+    }
+
+    private Node ceiling(int key, Node n) {
+        if (n == null) {
+            return null;
+        }
+        int cmp = Integer.compare(key, n.key);
+        if (cmp == 0) {
+            return n;
+        } else if (cmp < 0) {
+            Node ceilLeft = ceiling(key, n.left);
+            return (ceilLeft == null) ? n : ceilLeft;
         } else {
-            // Node has a single child -> bring up the grandchild
-            TreeNode grandChild = (toDelete.left == null) ? toDelete.right : toDelete.left;
-            if (toDelete == parent.left) {
-                parent.left = grandChild;
-            } else {
-                parent.right = grandChild;
-            }
+            return ceiling(key, n.right);
         }
     }
 
-    /** Find the successor node in case of deletion in the right subtree.
-     * Hop right, then as far as possible to the left. */
-    private TreeNode getSuccessorNode(TreeNode node) {
-        TreeNode successor = node.right;
-        while (successor != null && successor.left != null) {
-            successor = successor.left;
-        }
-        return successor;
+    /**
+     * Get the greatest key less than or equal to the input key or zero on failure
+     * @param key
+     * @return
+     */
+    public int ceiling(int key) {
+        Node c = ceiling(key, root);
+        return (c == null) ? 0 : c.key;
     }
 
-    private void delete(int value, TreeNode next, TreeNode parent) {
-        if (next == null) {
-            // Not found
-            return;
-        } else if (value == next.value) {
-            // Delete this
-            doDelete(next, parent);
-        } else if (value < next.value) {
-            // Search and delete in left subtree
-            delete(value, next.left, next);
+    private Node floor(int key, Node n) {
+        if (n == null) {
+            return null;
+        }
+        int cmp = Integer.compare(key, n.key);
+        if (cmp == 0) {
+            return n;
+        } else if (cmp < 0) {
+            return floor(key, n.left);
         } else {
-            // Search and delete in right subtree
-            delete(value, next.right, next);
-        }
-
-        // Update height
-        next.height = height(next);
-    }
-
-    public void delete(int value) {
-        return delete(value, root, null);
-    }
-
-    private void preorder(int[] arr) {
-        if (root == null) return;
-
-        Stack<TreeNode> stack = new Stack<>();
-        stack.push(root);
-        for (int i = 0; i < size && !stack.isEmpty(); ++i) {
-            Node next = stack.pop();
-            // Visit current -> add value
-            arr[i] = next.value;
-            // Right child is pushed first -> left is processed first
-            if (node.right != null) {
-                stack.push(node.right);
-            }
-            if (node.left != null) {
-                stack.push(node.left);
-            }
+            Node floorRight = floor(key, n.right);
+            return (floorRight == null) ? n : floorRight;
         }
     }
 
-    private void postorder(int[] arr) {
-        if (root == null) return;
-
-        Stack<TreeNode> stack = new Stack<>();
-        TreeNode lastVisited = null;
-        int i = 0;
-        for (TreeNode next = root; i < size && (!stack.isEmpty() || next != null); ) {
-            if (next != null) {
-                stack.push(node);
-                next = next.left;
-            } else {
-                TreeNode peek = stack.peek();
-                // Right child exists and traversing node from left child -> remove right
-                if (peek.right != null && lastNodeVisited != peekNode.right) {
-                    next = peekNode.right;
-                } else {
-                    // Visit peeked node
-                    arr[i] = peek.value;
-                    ++i;
-                    lastVisited = stack.pop();
-                }
-            }
-        }
+    /**
+     * Get the least key greater or equal to the input key or zero on failure
+     * @param key
+     * @return
+     */
+    public int floor(int key) {
+        Node f = floor(key, root);
+        return (f == null) ? 0 : f.key;
     }
 
-    private void inorder(int arr) {
-        if (root == null) return;
-
-        Stack<TreeNode> stack = new Stack<>();
-        int i = 0;
-        for (TreeNode next = root; i < size && (!stack.isEmpty() || next != null); ) {
-            if (node != null) {
-                stack.push(node);
-                next = next.left;
-            } else {
-                next = stack.pop();
-                // Visit popped node
-                arr[i] = next.value;
-                ++i;
-                next = next.right();
-            }
-        }
+    /** Get the size of the tree */
+    public int size() {
+        return size(root);
     }
 
-    private int height(TreeNode node) {
-        if (node == null) {
+    private int size(Node n) {
+        return (n == null) ? 0 : n.size();
+    }
+
+    /**
+     * Get how many keys are less than the input key
+     * @param key
+     * @return
+     */
+    public int rank(int key) {
+        return rank(key, root);
+    }
+
+    private int rank(int key, Node n) {
+        if (n == null) {
             return 0;
         }
-        int hLeft = height(node.left);
-        int hRight = height(node.right);
-        return 1 + Math.max(hLeft, hRight);
+        int cmp = Integer.compare(key, n.key);
+        if (cmp < 0) {
+            // Search left
+            return rank(key, n.left);
+        } else if (0 < cmp) {
+            // Size of this plus left subtree plus search right
+            return 1 + size(n.left) + rank(key, n.right);
+        } else {
+            // Found the ranked node -> return size of left subtree
+            return size(n.left);
+        }
     }
 
+    /** Hibbard deletion: use the predecessor or successor node with equal probability */
+    private Node doDelete(Node n) {
+        double probability = 0.5;
+        boolean useSuccessor = StdRandom.bernoulli(probability);
+        if (useSuccessor) {
+            Node suc = getSuccessor(n);
+            n.right = deleteMin(suc.right);
+            n.left = suc.left;
+        } else { // use predecessor
+            Node pred = getPredecessor(n);
+            n.left = deleteMax(pred.left);
+            n.right = pred.right;
+        }
+
+        return n;
+    }
+
+    /** Predecessor is one hop left then all the way right */
+    private Node getPredecessor(Node n) {
+        return max(n.left);
+    }
+
+    private Node deleteMax(Node n) {
+        if (n.right == null) {
+            return n.left;
+        }
+        n.right = deleteMax(n.right);
+        return n;
+    }
+
+    /**
+     * Delete the node with highest key
+     */
+    public void deleteMax() {
+        deleteMax(root);
+    }
+
+    /** Successor is one hop right then all the way left */
+    private Node getSuccessor(Node n) {
+        return min(n.right);
+    }
+
+    private Node deleteMin(Node n) {
+        if (n.left == null) {
+            return n.right;
+        }
+        n.left = deleteMin(n.left);
+        return n;
+    }
+
+    /**
+     * Delete the node with least key
+     */
+    public void deleteMin() {
+        deleteMin(root);
+    }
+
+    private Node delete(Node n, int key) {
+        if (n == null) {
+            // Not found
+            return null;
+        }
+        int cmp = Integer.compare(key, n.key);
+        if (cmp < 0) {
+            // Search left
+            delete(n.left, key);
+        } else if (0 < cmp) {
+            // Search right
+            delete(n.right, key);
+        } else {
+            // Found matching node
+            if (n.isLeaf()) {
+                n = doDelete(n);
+            } else if (n.right == null) {
+                // No right child -> return left
+                return n.left;
+            } else if (n.left == null) {
+                // No left child -> return right
+                return n.right;
+            }
+        }
+
+        return n;
+    }
+
+    public void delete(int key) {
+        delete(root, key);
+    }
+
+    /**
+     * Get keys in-order as Iterable
+     * @return
+     */
+    public Iterable<Integer> keys() {
+        Queue<Integer> q = new Queue<>();
+        inorder(root, q);
+        return q;
+    }
+
+    /** In-order traversal: left -> this -> right */
+    private void inorder(Node n, Queue<Integer> q) {
+        if (n == null) {
+            return;
+        }
+        inorder(n.left, q);
+        q.enqueue(n.key);
+        inorder(n.right, q);
+    }
+
+    /** Pre-order traversal: this -> left -> right */
+    private void preorder(Node n, Queue<Integer> q) {
+        if (n == null) {
+            return;
+        }
+        q.enqueue(n.key);
+        preorder(n.left, q);
+        preorder(n.right, q);
+    }
+
+    /** Post-order traversal: left -> right -> this */
+    private void postorder(Node n, Queue<Integer> q) {
+        if (n == null) {
+            return;
+        }
+        postorder(n.left, q);
+        postorder(n.right, q);
+        q.enqueue(n.key);
+    }
+
+    /** Gets the height of the tree */
+    public int height() {
+        return (root == null) ? 0 : root.height();
+    }
+
+    /**
+     * Builds array of keys using in-order traversal
+     * @return
+     */
     public int[] asArray() {
-        int size = Math.pow(2, height);
-        int[] arr = new int[size];
-        preorder(arr);
+        int len = (int) Math.pow(2, height());
+        int[] arr = new int[len];
+        Iterator<Integer> t = keys().iterator();
+        for (int i = 0; i < len && t.hasNext(); ++i) {
+            arr[i] = t.next();
+        }
         return arr;
     }
 
-    public class TreeNode {
-        private int value;
-        private TreeNode left, right;
-        int height;
+    private class Node {
+        private int key;
+        private Node left, right;
 
-        public TreeNode(int value, TreeNode left, TreeNode right) {
-            this.value = value;
+        public Node(int key, Node left, Node right) {
+            this.key = key;
             this.left = left;
             this.right = right;
-            this.height = 1;
         }
 
-        public TreeNode(int value) {
-            this(value, null, null);
+        public Node(int key) {
+            this(key, null, null);
         }
 
+        /** Is this a leaf node with no children */
         public boolean isLeaf() {
             return left == null && right == null;
         }
 
+        /** Count of nodes in this sub-tree */
+        public int size() {
+            if (isLeaf()) {
+                return 1;
+            }
+            int lSize = (left == null) ? 0 : left.size();
+            int rSize = (right == null) ? 0 : right.size();
+            return 1 + lSize + rSize;
+        }
+
+        /** Height of this sub-tree */
         public int height() {
-            int hLeft = height(node.left);
-            int hRight = height(node.right);
+            int hLeft = (left == null) ? 0 : left.height();
+            int hRight = (right == null) ? 0 : right.height();
             return 1 + Math.max(hLeft, hRight);
         }
     }
