@@ -1,8 +1,15 @@
+package techlead_bst;
+
 import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.NoSuchElementException;
+import java.util.Random;
 
-import edu.princeton.cs.algs4.Queue;
-import edu.princeton.cs.algs4.StdRandom;
-
+/**
+ * Binary Search Tree implementation with standard operations.
+ * Supports various traversals and operations like rank, select, floor, ceiling.
+ */
 public class BinarySearchTree {
     private Node root = null;
 
@@ -20,7 +27,6 @@ public class BinarySearchTree {
             // Set -> don't add duplicates
             return n;
         }
-
         return n;
     }
 
@@ -29,7 +35,7 @@ public class BinarySearchTree {
      * @param key
      */
     public void add(int key) {
-        add(key, root);
+        root = add(key, root);
     }
 
     private Node search(int key, Node n) {
@@ -50,11 +56,20 @@ public class BinarySearchTree {
 
     /**
      * Search for a key
-     * @param key
-     * @return
+     * @param key the key to search for
+     * @return the node containing the key, or null if not found
      */
     public Node search(int key) {
         return search(key, root);
+    }
+
+    /**
+     * Check if the tree contains a key
+     * @param key the key to check for
+     * @return true if the key is in the tree, false otherwise
+     */
+    public boolean contains(int key) {
+        return search(key) != null;
     }
 
     private Node min(Node n) {
@@ -64,12 +79,15 @@ public class BinarySearchTree {
     }
 
     /**
-     * Get minimum key or zero on failure
-     * @return
+     * Get minimum key
+     * @return the minimum key in the tree
+     * @throws NoSuchElementException if the tree is empty
      */
     public int min() {
-        Node n = min(root);
-        return (n == null) ? 0 : n.key;
+        if (isEmpty()) {
+            throw new NoSuchElementException("Cannot get minimum of empty tree");
+        }
+        return min(root).key;
     }
 
     private Node max(Node n) {
@@ -79,12 +97,15 @@ public class BinarySearchTree {
     }
 
     /**
-     * Get maximum key or zero on failure
-     * @return
+     * Get maximum key
+     * @return the maximum key in the tree
+     * @throws NoSuchElementException if the tree is empty
      */
     public int max() {
-        Node n = max(root);
-        return (n == null) ? 0 : n.key;
+        if (isEmpty()) {
+            throw new NoSuchElementException("Cannot get maximum of empty tree");
+        }
+        return max(root).key;
     }
 
     private Node ceiling(int key, Node n) {
@@ -103,13 +124,17 @@ public class BinarySearchTree {
     }
 
     /**
-     * Get the greatest key less than or equal to the input key or zero on failure
-     * @param key
-     * @return
+     * Get the greatest key less than or equal to the input key
+     * @param key the key to find the ceiling for
+     * @return the ceiling key
+     * @throws NoSuchElementException if no ceiling exists
      */
     public int ceiling(int key) {
         Node c = ceiling(key, root);
-        return (c == null) ? 0 : c.key;
+        if (c == null) {
+            throw new NoSuchElementException("No ceiling exists for key " + key);
+        }
+        return c.key;
     }
 
     private Node floor(int key, Node n) {
@@ -128,22 +153,33 @@ public class BinarySearchTree {
     }
 
     /**
-     * Get the least key greater or equal to the input key or zero on failure
-     * @param key
-     * @return
+     * Get the least key greater or equal to the input key
+     * @param key the key to find the floor for
+     * @return the floor key
+     * @throws NoSuchElementException if no floor exists
      */
     public int floor(int key) {
         Node f = floor(key, root);
-        return (f == null) ? 0 : f.key;
+        if (f == null) {
+            throw new NoSuchElementException("No floor exists for key " + key);
+        }
+        return f.key;
     }
 
     /** Get the size of the tree */
     public int size() {
-        return size(root);
+        if (root == null) {
+            return 0;
+        }
+        return root.size();
     }
-
-    private int size(Node n) {
-        return (n == null) ? 0 : n.size();
+    
+    /**
+     * Check if the tree is empty
+     * @return true if the tree is empty, false otherwise
+     */
+    public boolean isEmpty() {
+        return root == null;
     }
 
     /**
@@ -161,32 +197,52 @@ public class BinarySearchTree {
         }
         int cmp = Integer.compare(key, n.key);
         if (cmp < 0) {
-            // Search left
             return rank(key, n.left);
-        } else if (0 < cmp) {
-            // Size of this plus left subtree plus search right
-            return 1 + size(n.left) + rank(key, n.right);
+        } else if (cmp > 0) {
+            return 1 + (n.left != null ? n.left.size() : 0) + rank(key, n.right);
         } else {
-            // Found the ranked node -> return size of left subtree
-            return size(n.left);
+            return (n.left != null ? n.left.size() : 0);
         }
     }
 
     /** Hibbard deletion: use the predecessor or successor node with equal probability */
     private Node doDelete(Node n) {
-        double probability = 0.5;
-        boolean useSuccessor = StdRandom.bernoulli(probability);
-        if (useSuccessor) {
-            Node suc = getSuccessor(n);
-            n.right = deleteMin(suc.right);
-            n.left = suc.left;
-        } else { // use predecessor
-            Node pred = getPredecessor(n);
-            n.left = deleteMax(pred.left);
-            n.right = pred.right;
+        Random random = new Random();
+        if (random.nextBoolean()) {
+            // Use successor if available
+            if (n.right != null) {
+                Node succ = getSuccessor(n);
+                n.key = succ.key;
+                n.right = delete(n.right, succ.key);
+                return n;
+            } else if (n.left != null) {
+                // Fall back to predecessor if no right child
+                Node pred = getPredecessor(n);
+                n.key = pred.key;
+                n.left = delete(n.left, pred.key);
+                return n;
+            } else {
+                // Leaf node
+                return null;
+            }
+        } else {
+            // Use predecessor if available
+            if (n.left != null) {
+                Node pred = getPredecessor(n);
+                n.key = pred.key;
+                n.left = delete(n.left, pred.key);
+                return n;
+            } else if (n.right != null) {
+                // Fall back to successor if no left child
+                Node succ = getSuccessor(n);
+                n.key = succ.key;
+                n.right = delete(n.right, succ.key);
+                return n;
+            } else {
+                // Leaf node
+                return null;
+            }
         }
-
-        return n;
     }
 
     /** Predecessor is one hop left then all the way right */
@@ -194,41 +250,71 @@ public class BinarySearchTree {
         return max(n.left);
     }
 
-    private Node deleteMax(Node n) {
-        if (n.right == null) {
-            return n.left;
-        }
-        n.right = deleteMax(n.right);
-        return n;
-    }
-
-    /**
-     * Delete the node with highest key
-     */
-    public void deleteMax() {
-        deleteMax(root);
-    }
-
     /** Successor is one hop right then all the way left */
     private Node getSuccessor(Node n) {
         return min(n.right);
     }
-
+    
+    /**
+     * Delete the node with least key from the subtree rooted at n
+     * @param n the root of the subtree
+     * @return the updated subtree
+     */
     private Node deleteMin(Node n) {
+        if (n == null) {
+            return null;
+        }
         if (n.left == null) {
             return n.right;
         }
         n.left = deleteMin(n.left);
         return n;
     }
-
+    
     /**
      * Delete the node with least key
+     * @throws NoSuchElementException if the tree is empty
      */
     public void deleteMin() {
-        deleteMin(root);
+        if (isEmpty()) {
+            throw new NoSuchElementException("Cannot delete minimum from empty tree");
+        }
+        root = deleteMin(root);
+    }
+    
+    /**
+     * Delete the node with highest key from the subtree rooted at n
+     * @param n the root of the subtree
+     * @return the updated subtree
+     */
+    private Node deleteMax(Node n) {
+        if (n == null) {
+            return null;
+        }
+        if (n.right == null) {
+            return n.left;
+        }
+        n.right = deleteMax(n.right);
+        return n;
+    }
+    
+    /**
+     * Delete the node with highest key
+     * @throws NoSuchElementException if the tree is empty
+     */
+    public void deleteMax() {
+        if (isEmpty()) {
+            throw new NoSuchElementException("Cannot delete maximum from empty tree");
+        }
+        root = deleteMax(root);
     }
 
+    /**
+     * Delete a node with the given key from the subtree rooted at n
+     * @param n the root of the subtree
+     * @param key the key to delete
+     * @return the updated subtree
+     */
     private Node delete(Node n, int key) {
         if (n == null) {
             // Not found
@@ -237,68 +323,201 @@ public class BinarySearchTree {
         int cmp = Integer.compare(key, n.key);
         if (cmp < 0) {
             // Search left
-            delete(n.left, key);
+            n.left = delete(n.left, key);
         } else if (0 < cmp) {
             // Search right
-            delete(n.right, key);
+            n.right = delete(n.right, key);
         } else {
             // Found matching node
             if (n.isLeaf()) {
-                n = doDelete(n);
+                // Just remove leaf nodes
+                return null;
             } else if (n.right == null) {
                 // No right child -> return left
                 return n.left;
             } else if (n.left == null) {
                 // No left child -> return right
                 return n.right;
+            } else {
+                // Node with two children -> Use Hibbard deletion to handle replacement with predecessor or successor
+                return doDelete(n);
             }
         }
-
         return n;
     }
 
+    /**
+     * Delete a key from the tree
+     * @param key the key to delete
+     */
     public void delete(int key) {
-        delete(root, key);
+        root = delete(root, key);
+    }
+    
+    /**
+     * Remove a key from the tree
+     * @param key the key to remove
+     * @return true if the key was found and removed, false otherwise
+     */
+    public boolean remove(int key) {
+        if (!contains(key)) {
+            return false;
+        }
+        delete(key);
+        return true;
     }
 
     /**
      * Get keys in-order as Iterable
-     * @return
+     * @return an iterable of all keys in sorted order
      */
     public Iterable<Integer> keys() {
-        Queue<Integer> q = new Queue<>();
-        inorder(root, q);
-        return q;
+        List<Integer> list = new LinkedList<>();
+        inorder(root, list);
+        return list;
+    }
+    
+    /**
+     * Get keys in-order as Iterable
+     * @return an iterable of all keys in sorted order
+     */
+    public Iterable<Integer> inorder() {
+        List<Integer> list = new LinkedList<>();
+        inorder(root, list);
+        return list;
+    }
+    
+    /**
+     * Get keys in pre-order as Iterable
+     * @return an iterable of all keys in pre-order
+     */
+    public Iterable<Integer> preorder() {
+        List<Integer> list = new LinkedList<>();
+        preorder(root, list);
+        return list;
+    }
+    
+    /**
+     * Get keys in post-order as Iterable
+     * @return an iterable of all keys in post-order
+     */
+    public Iterable<Integer> postorder() {
+        List<Integer> list = new LinkedList<>();
+        postorder(root, list);
+        return list;
+    }
+    
+    /**
+     * Get keys in level-order as Iterable
+     * @return an iterable of all keys in level-order
+     */
+    public Iterable<Integer> levelorder() {
+        List<Integer> result = new LinkedList<>();
+        if (root == null) {
+            return result;
+        }
+        
+        java.util.Queue<Node> queue = new LinkedList<>();
+        queue.add(root);
+        
+        while (!queue.isEmpty()) {
+            Node node = queue.remove();
+            result.add(node.key);
+            
+            if (node.left != null) {
+                queue.add(node.left);
+            }
+            if (node.right != null) {
+                queue.add(node.right);
+            }
+        }
+        
+        return result;
+    }
+    
+    /**
+     * Get keys in the given range [lo, hi] as Iterable
+     * @param lo the lower bound (inclusive)
+     * @param hi the upper bound (inclusive)
+     * @return an iterable of all keys in the given range
+     */
+    public Iterable<Integer> range(int lo, int hi) {
+        List<Integer> list = new LinkedList<>();
+        range(root, list, lo, hi);
+        return list;
+    }
+    
+    private void range(Node node, List<Integer> list, int lo, int hi) {
+        if (node == null) {
+            return;
+        }
+        
+        if (lo < node.key) {
+            range(node.left, list, lo, hi);
+        }
+        if (lo <= node.key && node.key <= hi) {
+            list.add(node.key);
+        }
+        if (node.key < hi) {
+            range(node.right, list, lo, hi);
+        }
+    }
+    
+    /**
+     * Get the key of rank k (the kth smallest key)
+     * @param k the rank
+     * @return the key of rank k
+     * @throws IllegalArgumentException if k is out of range
+     */
+    public int select(int k) {
+        if (k < 0 || k >= size()) {
+            throw new IllegalArgumentException("Rank out of range");
+        }
+        return select(root, k);
+    }
+    
+    private int select(Node node, int k) {
+        if (node == null) return -1;
+        
+        int leftSize = (node.left == null) ? 0 : node.left.size();
+        
+        if (leftSize > k) {
+            return select(node.left, k);
+        } else if (leftSize < k) {
+            return select(node.right, k - leftSize - 1);
+        } else {
+            return node.key;
+        }
     }
 
     /** In-order traversal: left -> this -> right */
-    private void inorder(Node n, Queue<Integer> q) {
+    private void inorder(Node n, List<Integer> list) {
         if (n == null) {
             return;
         }
-        inorder(n.left, q);
-        q.enqueue(n.key);
-        inorder(n.right, q);
+        inorder(n.left, list);
+        list.add(n.key);
+        inorder(n.right, list);
     }
 
     /** Pre-order traversal: this -> left -> right */
-    private void preorder(Node n, Queue<Integer> q) {
+    private void preorder(Node n, List<Integer> list) {
         if (n == null) {
             return;
         }
-        q.enqueue(n.key);
-        preorder(n.left, q);
-        preorder(n.right, q);
+        list.add(n.key);
+        preorder(n.left, list);
+        preorder(n.right, list);
     }
 
     /** Post-order traversal: left -> right -> this */
-    private void postorder(Node n, Queue<Integer> q) {
+    private void postorder(Node n, List<Integer> list) {
         if (n == null) {
             return;
         }
-        postorder(n.left, q);
-        postorder(n.right, q);
-        q.enqueue(n.key);
+        postorder(n.left, list);
+        postorder(n.right, list);
+        list.add(n.key);
     }
 
     /** Gets the height of the tree */
