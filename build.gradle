@@ -77,3 +77,15 @@ task testBST(type: Test) {
     }
     include '**/techlead_bst/**'
 }
+
+// Task for running just the Graph algorithm tests
+task testGraphs(type: Test) {
+    group = 'verification'
+    description = 'Runs the Graph algorithm unit tests'
+    useJUnit()
+    testLogging {
+        events "passed", "skipped", "failed"
+        showStandardStreams = true
+    }
+    include '**/graphs/**'
+}

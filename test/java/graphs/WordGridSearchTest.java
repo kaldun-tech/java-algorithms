@@ -115,10 +115,10 @@ public class WordGridSearchTest {
             {'A', 'A', 'A'}
         };
         
-        // "AAAAA" would be possible if we could reuse cells
-        // But since we can't, the longest "A" chain is 5
-        assertTrue(wordSearch.exist(board, "AAAAA"));
-        assertFalse(wordSearch.exist(board, "AAAAAA"));
+        // In a 3x3 grid, we can have at most 9 cells
+        // So a word with 9 A's should be possible, but 10 A's should not
+        assertTrue(wordSearch.exist(board, "AAAAAAAAA"));
+        assertFalse(wordSearch.exist(board, "AAAAAAAAAA"));
     }
     
     /**

@@ -1,24 +1,40 @@
+package graphs;
+
 import java.util.List;
 import java.util.ArrayList;
 
+/**
+ * A class that implements word search in a 2D character grid.
+ * 
+ * The word can be constructed from letters of sequentially adjacent cells,
+ * where adjacent cells are horizontally or vertically neighboring.
+ * The same letter cell may not be used more than once.
+ */
 class WordGridSearch {
     /**
      * Given an m x n grid of characters board and a string word,
      * return true if word exists in the grid.
      *
-     * The word can be constructed from letters of sequentially adjacent cells,
-     * where adjacent cells are horizontally or vertically neighboring.
-     * The same letter cell may not be used more than once.
-     * @param board
-     * @param word
-     * @return
+     * @param board The 2D grid of characters to search in
+     * @param word The word to search for
+     * @return true if the word exists in the grid, false otherwise
      */
     public boolean exist(char[][] board, String word) {
-        int m = board.length;
-        int n = board[0].length;
+        // Handle edge cases
+        if (board == null || board.length == 0 || board[0].length == 0) {
+            return false;
+        }
+        
+        if (word == null || word.isEmpty()) {
+            return true;  // Empty word is always found
+        }
+        
+        int rows = board.length;
+        int cols = board[0].length;
 
-        for (int i = 0; i < m; i++) {
-            for (int j = 0; j < n; j++) {
+        // Try starting the search from each cell
+        for (int i = 0; i < rows; i++) {
+            for (int j = 0; j < cols; j++) {
                 if (board[i][j] == word.charAt(0)) {
                     if (dfs(board, word, 0, i, j)) {
                         return true;
@@ -29,133 +45,84 @@ class WordGridSearch {
         return false;
     }
 
+    /**
+     * Performs a depth-first search from a given position in the grid.
+     *
+     * @param board The 2D grid of characters
+     * @param word The word to search for
+     * @param index Current index in the word
+     * @param row Current row in the grid
+     * @param col Current column in the grid
+     * @return true if the word can be found starting at this position
+     */
     private boolean dfs(char[][] board, String word, int index, int row, int col) {
+        // Base case: we've matched the entire word
         if (index == word.length()) {
             return true;
         }
 
+        // Check if current position is valid and matches the current character
         if (row < 0 || row >= board.length || col < 0 || col >= board[0].length ||
                 board[row][col] != word.charAt(index)) {
             return false;
         }
 
+        // Mark current cell as visited
         char temp = board[row][col];
-        board[row][col] = '#'; // Mark as visited (you can also use a separate visited matrix)
+        board[row][col] = '#';
+        
+        // Initialize found flag
+        boolean found = false;
+        
+        // If this is the last character of the word, we're done
+        if (index == word.length() - 1) {
+            found = true;
+        } else {
+            // Get all valid neighbors and check them
+            for (int[] neighbor : getNeighborPositions(row, col, board.length, board[0].length)) {
+                if (dfs(board, word, index + 1, neighbor[0], neighbor[1])) {
+                    found = true;
+                    break;
+                }
+            }
+        }
 
-        boolean found = dfs(board, word, index + 1, row + 1, col) ||
-                dfs(board, word, index + 1, row - 1, col) ||
-                dfs(board, word, index + 1, row, col + 1) ||
-                dfs(board, word, index + 1, row, col - 1);
-
-        board[row][col] = temp; // Backtrack (unmark)
+        // Backtrack: restore the cell's original value
+        board[row][col] = temp;
         return found;
     }
-
-    /*public boolean exist(char[][] board, String word) {
-        Board model = new Board(board);
-        char start = word.charAt(0);
-
-        for (int i = 0; i < model.mRows; ++i) {
-            for (int j = 0; j < model.nCols; ++j) {
-                if (model.cells[i][j].c == start) {
-                    if (model.dfs(word, 0, i, j)) {
-                        return true;
-                    }
-                }
+    
+    /**
+     * Returns the positions of all valid neighbors (up, down, left, right)
+     * for a given cell in the grid.
+     *
+     * @param row Current row
+     * @param col Current column
+     * @param totalRows Total number of rows in the grid
+     * @param totalCols Total number of columns in the grid
+     * @return Array of neighbor positions as [row, col] pairs
+     */
+    private int[][] getNeighborPositions(int row, int col, int totalRows, int totalCols) {
+        // Define the 4 possible directions: up, right, down, left
+        int[][] directions = {{-1, 0}, {0, 1}, {1, 0}, {0, -1}};
+        List<int[]> validNeighbors = new ArrayList<>();
+        
+        for (int[] dir : directions) {
+            int newRow = row + dir[0];
+            int newCol = col + dir[1];
+            
+            // Check if the neighbor is within bounds
+            if (newRow >= 0 && newRow < totalRows && newCol >= 0 && newCol < totalCols) {
+                validNeighbors.add(new int[]{newRow, newCol});
             }
         }
-        return false;
+        
+        // Convert list to array
+        int[][] result = new int[validNeighbors.size()][2];
+        for (int i = 0; i < validNeighbors.size(); i++) {
+            result[i] = validNeighbors.get(i);
+        }
+        
+        return result;
     }
-
-    class Cell {
-        char c;
-        int index;
-        boolean visited;
-
-        public Cell(char c, int index) {
-            this.c = c;
-            this.index = index;
-            visited = false;
-        }
-    }
-
-    class Board {
-        int mRows;
-        int nCols;
-        Cell[][] cells;
-
-        public Board(char[][] board) {
-            mRows = board.length;
-            nCols = board[0].length;
-            cells = new Cell[mRows][];
-            for (int i = 0; i < mRows; ++i) {
-                cells[i] = new Cell[nCols];
-                for (int j = 0; j < nCols; ++j) {
-                    cells[i][j] = new Cell(board[i][j], scalarIndex(i, j));
-                }
-            }
-        }
-
-        public int scalarIndex(int row, int col) {
-            if (row < 0 || mRows <= row || col < 0 || nCols < col) {
-                // Invalid value
-                return -1;
-            }
-            return (nCols * row) + col;
-        }
-
-        public int getRow(int index) {
-            return index / nCols;
-        }
-
-        public int getCol(int index) {
-            return index % nCols;
-        }
-
-        public List<Cell> getNeighbors(int row, int col) {
-            List<Cell> neighbors = new ArrayList<>();
-            if (0 < row) {
-                // Prev row
-                neighbors.add(cells[row - 1][col]);
-            }
-            if (row < mRows - 1) {
-                // Next row
-                neighbors.add(cells[row + 1][col]);
-            }
-            if (0 < col) {
-                // Prev col
-                neighbors.add(cells[row][col - 1]);
-            }
-            if (col < nCols - 1) {
-                // Next col
-                neighbors.add(cells[row][col + 1]);
-            }
-            return neighbors;
-        }
-
-        boolean dfs(String word, int wIndex, int row, int col) {
-            if (wIndex == word.length()) {
-                return true;
-            }
-
-            char nextChar = word.charAt(wIndex);
-            if (row < 0 || mRows <= row  || col < 0 || nCols <= col ||
-                cells[row][col].visited || cells[row][col].c != nextChar) {
-                return false;
-            }
-
-            cells[row][col].visited = true;
-            // Recursion time
-            List<Cell> neighbors = getNeighbors(row, col);
-            boolean found = false;
-            for (Cell n : neighbors) {
-                int nextRow = getRow(n.index);
-                int nextCol = getCol(n.index);
-                found = (found || dfs(word, wIndex + 1, nextRow, nextCol));
-                // Backtrack (unmark visited)
-                n.visited = false;
-            }
-            return found;
-        }
-    }*/
 }
