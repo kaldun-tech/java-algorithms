@@ -1,4 +1,4 @@
-package graphs;
+package leetcode;
 
 import org.junit.Test;
 import org.junit.Before;
