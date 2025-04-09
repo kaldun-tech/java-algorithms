@@ -37,14 +37,17 @@ public class UniquePaths {
     public int uniquePathsWithObstacles(int[][] obstacleGrid) {
         // Implement edge case checks (null/empty grid, start/end obstacles)
         if (obstacleGrid == null || obstacleGrid.length == 0) {
-            throw new IllegalArgumentException("Null or empty obstacle grid");
+            System.out.println("Null or empty obstacle grid");
+            return 0;
         }
         int mRows = obstacleGrid.length;
         int nCols = obstacleGrid[0].length;
         if (obstacleGrid[0][0] == 1) {
-            throw new IllegalArgumentException("Obstacle grid has invalid obstacle in start position");
+            System.out.println("Obstacle grid has invalid obstacle in start position");
+            return 0;
         } else if (obstacleGrid[mRows - 1][nCols - 1] == 1) {
-            throw new IllegalArgumentException("Obstacle grid has invalid obstacle in start position");
+            System.out.println("Obstacle grid has invalid obstacle in end position");
+            return 0;
         }
 
         // Create the dp table
@@ -59,7 +62,7 @@ public class UniquePaths {
         }
 
         // Fill the first column (dp[i][0])
-        for (int i = 1; i < nCols; ++i) {
+        for (int i = 1; i < mRows; ++i) {
             fillDp(obstacleGrid, dp, i, 0);
         }
 
@@ -89,16 +92,17 @@ public class UniquePaths {
             // Initial position cannot be blocked
             dp[i][j] = 1;
         } else if (i == 0 && 0 < j) {
-            // First row columns depend on previous column
-            dp[i][j] = (obstacleGrid[i][j - 1] == 0 && obstacleGrid[i][j] == 0) ? 1 : 0;
+            // First row columns depend on previous column as they must be reached from the left
+            dp[i][j] = (obstacleGrid[i][j] == 0) ? dp[i][j - 1] : 0;
         } else if (0 < i && j == 0) {
-            // First column rows depend on previous rows
-            dp[i][j] = (obstacleGrid[i - 1][j] == 0 && obsacleGrid[i][j] == 0) ? 1 : 0;
-        } else if (obstacleGrid[i][j] == 0) {
-            dp[i][j] = [i - 1][j] + dp[i][j - 1];
-        } else {
+            // First column rows depend on previous rows as they must be reached from above
+            dp[i][j] = (obstacleGrid[i][j] == 0) ? dp[i - 1][j] : 0;
+        } else if (obstacleGrid[i][j] == 1) {
             // Initialize as blocked
             dp[i][j] = 0;
+        } else {
+            // Initialize as sum of previous cells
+            dp[i][j] = dp[i - 1][j] + dp[i][j - 1];
         }
     }
 }
