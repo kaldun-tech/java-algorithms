@@ -36,40 +36,55 @@ public class UniquePaths {
      */
     public int uniquePathsWithObstacles(int[][] obstacleGrid) {
         // Implement edge case checks (null/empty grid, start/end obstacles)
-        if (obstacleGrid == null || obstacleGrid.length == 0) {
+        if (obstacleGrid == null || obstacleGrid.length == 0 || obstacleGrid[0].length == 0) {
             System.out.println("Null or empty obstacle grid");
             return 0;
         }
         int mRows = obstacleGrid.length;
         int nCols = obstacleGrid[0].length;
-        if (obstacleGrid[0][0] == 1) {
-            System.out.println("Obstacle grid has invalid obstacle in start position");
-            return 0;
-        } else if (obstacleGrid[mRows - 1][nCols - 1] == 1) {
-            System.out.println("Obstacle grid has invalid obstacle in end position");
+
+        // If start or end is blocked, no path is possible
+        if (obstacleGrid[0][0] == 1 || obstacleGrid[mRows - 1][nCols - 1] == 1) {
+            System.out.println("Obstacle grid has invalid obstacle in start or end position");
             return 0;
         }
 
         // Create the dp table
         int[][] dp = new int[mRows][nCols];
 
-        // The first entry cannot be blocked -> initialize [0][0] as 1
+        // Initialize the starting cell
+        // We already know obstacleGrid[0][0] is 0 from the check above
         dp[0][0] = 1;
 
         // Fill the first row (dp[0][j])
+        // Can only reach from the left
         for (int j = 1; j < nCols; ++j) {
-            fillDp(obstacleGrid, dp, 0, j);
+            if (obstacleGrid[0][j] == 0) {
+                dp[0][j] = dp[0][j - 1];
+            } else {
+                dp[0][j] = 0; // Blocked by obstacle
+            }
         }
 
         // Fill the first column (dp[i][0])
+        // Can only reach from above
         for (int i = 1; i < mRows; ++i) {
-            fillDp(obstacleGrid, dp, i, 0);
+            if (obstacleGrid[i][0] == 0) {
+                dp[i][0] = dp[i - 1][0];
+            } else {
+                dp[i][0] = 0; // Blocked by obstacle
+            }
         }
 
         // Fill the remaining cells (dp[i][j] for i > 0 and j > 0)
         for (int i = 1; i < mRows; ++i) {
             for (int j = 1; j < nCols; ++j) {
-                fillDp(obstacleGrid, dp, i, j);
+                if (obstacleGrid[i][j] == 1) {
+                    dp[i][j] = 0; // Cell is blocked
+                } else {
+                    // Number of ways is sum of ways from top and left
+                    dp[i][j] = dp[i - 1][j] + dp[i][j - 1];
+                }
             }
         }
 
@@ -78,31 +93,53 @@ public class UniquePaths {
     }
 
     /**
-     * Initial position cannot be blocked -> initialize the first cell as 1
-     * Fill the first i: `dp[0][j]` depends on `dp[0][j-1]` and `obstacleGrid[0][j]`.
-     * Fill the first column: `dp[i][0]` depends on `dp[i-1][0]` and `obstacleGrid[i][0]`.
-     * Fill the rest of the table: `dp[i][j] = dp[i-1][j] + dp[i][j-1]` if `obstacleGrid[i][j]` is not an obstacle.
-     * @param obstacleGrid
-     * @param dp
-     * @param i
-     * @param j
+     * Find unique paths using recursion with memoization (Top-Down DP).
+     *
+     * @param obstacleGrid The m x n grid with 0 representing space and 1 representing obstacle.
+     * @return The number of unique paths from (0, 0) to (m-1, n-1).
      */
-    static void fillDp(int[][] obstacleGrid, int[][] dp, int i, int j) {
-        if (i == 0 && j == 0) {
-            // Initial position cannot be blocked
-            dp[i][j] = 1;
-        } else if (i == 0 && 0 < j) {
-            // First row columns depend on previous column as they must be reached from the left
-            dp[i][j] = (obstacleGrid[i][j] == 0) ? dp[i][j - 1] : 0;
-        } else if (0 < i && j == 0) {
-            // First column rows depend on previous rows as they must be reached from above
-            dp[i][j] = (obstacleGrid[i][j] == 0) ? dp[i - 1][j] : 0;
-        } else if (obstacleGrid[i][j] == 1) {
-            // Initialize as blocked
-            dp[i][j] = 0;
-        } else {
-            // Initialize as sum of previous cells
-            dp[i][j] = dp[i - 1][j] + dp[i][j - 1];
+    public int uniquePathsWithObstaclesMemo(int[][] obstacleGrid) {
+        if (obstacleGrid == null || obstacleGrid.length == 0 || obstacleGrid[0].length == 0) {
+            System.out.println("Null or empty obstacle grid");
+            return 0;
         }
+        int mRows = obstacleGrid.length;
+        int nCols = obstacleGrid[0].length;
+
+        if (obstacleGrid[0][0] == 1 || obstacleGrid[mRows - 1][nCols - 1] == 1) {
+            System.out.println("Obstacle grid has invalid obstacle in start or end position");
+            return 0;
+        }
+
+        Integer[][] memo = new Integer[mRows][nCols]; // Use Integer wrapper to allow null for uncomputed
+        return dfs(obstacleGrid, 0, 0, memo);
+    }
+
+    private int dfs(int[][] obstacleGrid, int row, int col, Integer[][] memo) {
+        int mRows = obstacleGrid.length;
+        int nCols = obstacleGrid[0].length;
+
+        // Base Case 1: Out of bounds or obstacle
+        if (row >= mRows || col >= nCols || obstacleGrid[row][col] == 1) {
+            return 0;
+        }
+
+        // Base Case 2: Reached destination
+        if (row == mRows - 1 && col == nCols - 1) {
+            return 1;
+        }
+
+        // Base Case 3: Memoization check
+        if (memo[row][col] != null) {
+            return memo[row][col];
+        }
+
+        // Recursive step: Explore down and right
+        int pathsDown = dfs(obstacleGrid, row + 1, col, memo);
+        int pathsRight = dfs(obstacleGrid, row, col + 1, memo);
+
+        // Store result in memo and return
+        memo[row][col] = pathsDown + pathsRight;
+        return memo[row][col];
     }
 }
