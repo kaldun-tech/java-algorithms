@@ -52,12 +52,10 @@ public class UniquePaths {
         // Create the dp table
         int[][] dp = new int[mRows][nCols];
 
-        // Initialize the starting cell
-        // We already know obstacleGrid[0][0] is 0 from the check above
+        // Initialize the starting cell. We already know obstacleGrid[0][0] is 0 from the check above
         dp[0][0] = 1;
 
-        // Fill the first row (dp[0][j])
-        // Can only reach from the left
+        // Fill the first row (dp[0][j]). Can only reach from the left
         for (int j = 1; j < nCols; ++j) {
             if (obstacleGrid[0][j] == 0) {
                 dp[0][j] = dp[0][j - 1];
@@ -66,8 +64,7 @@ public class UniquePaths {
             }
         }
 
-        // Fill the first column (dp[i][0])
-        // Can only reach from above
+        // Fill the first column (dp[i][0]). Can only reach from above
         for (int i = 1; i < mRows; ++i) {
             if (obstacleGrid[i][0] == 0) {
                 dp[i][0] = dp[i - 1][0];
@@ -80,7 +77,8 @@ public class UniquePaths {
         for (int i = 1; i < mRows; ++i) {
             for (int j = 1; j < nCols; ++j) {
                 if (obstacleGrid[i][j] == 1) {
-                    dp[i][j] = 0; // Cell is blocked
+                    // Cell is blocked
+                    dp[i][j] = 0;
                 } else {
                     // Number of ways is sum of ways from top and left
                     dp[i][j] = dp[i - 1][j] + dp[i][j - 1];
@@ -111,7 +109,8 @@ public class UniquePaths {
             return 0;
         }
 
-        Integer[][] memo = new Integer[mRows][nCols]; // Use Integer wrapper to allow null for uncomputed
+        // Use Integer wrapper to allow null for uncomputed
+        Integer[][] memo = new Integer[mRows][nCols];
         return dfs(obstacleGrid, 0, 0, memo);
     }
 
