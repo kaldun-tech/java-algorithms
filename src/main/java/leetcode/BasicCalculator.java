@@ -11,21 +11,6 @@ import java.util.Stack;
  */
 public class BasicCalculator {
 
-    static final char[] operators = {'+', '-', '*', '/'};
-
-    private static boolean isOperator(char c) {
-        for (char op : operators) {
-            if (op == c) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    private static void pushOperator(Stack<Character> s, char c) {
-        s.push(c);
-    }
-
     /**
      * Evaluates the given expression string.
      *
@@ -37,50 +22,50 @@ public class BasicCalculator {
             return 0;
         }
 
-        // TODO: Implement the calculation logic using a stack
-        Stack<Integer> sumStack = new Stack<>();
-        int currentNumber = 0;
+        // Trim whitespace and append a dummy operator to ensure last number is processed
+        s = s.trim() + "+"; 
         int len = s.length();
+        Stack<Integer> stack = new Stack<>();
+        int currentNumber = 0;
         char lastOperator = '+';
 
         for (int i = 0; i < len; ++i) {
             char c = s.charAt(i);
+
             if (Character.isWhitespace(c)) {
-                // Nothing to see here
                 continue;
-            } else if (isOperator(c) || i == len - 1) {
-                // Handle multiplication and division immediately as they have higher precedence
+            }
+
+            if (Character.isDigit(c)) {
+                // Build the current number
+                currentNumber = currentNumber * 10 + (c - '0');
+            } else { // It's an operator
+                // Process the previous number based on the lastOperator
                 if (lastOperator == '+') {
-                    // Push the number onto the stack
                     stack.push(currentNumber);
                 } else if (lastOperator == '-') {
-                    // Push the negative
-                    stack.push(-1 * currentNumber);
-                } if (lastOperator == '*') {
-                    // Pop the top, multiply and push back
-                    int product = currentNumber * sumStack.pop();
-                    sumStack.push(product);
-                } else {
-                    // Division -> pop, divide by current num, and push back
-                    int div = sumStack.pop() / currentNumber;
-                    sumStack.push(div);
+                    stack.push(-currentNumber);
+                } else if (lastOperator == '*') {
+                    stack.push(stack.pop() * currentNumber);
+                } else if (lastOperator == '/') {
+                    // Check for division by zero, although problem constraints might prevent it
+                    if (currentNumber == 0) { 
+                        throw new ArithmeticException("Division by zero");
+                    }
+                    stack.push(stack.pop() / currentNumber);
                 }
-                // Update last op and reset current number
+                // Update the last operator and reset the current number for the next segment
                 lastOperator = c;
                 currentNumber = 0;
-            } else {
-                // Update current number
-                int digit = (c - '0');
-                currentNumber = currentNumber * 10 + digit;
             }
         }
 
-        // Result is the sum of remaining numbers on the stack
-        int sum = 0;
-        for (Integer num : sumStack) {
-            sum += num;
+        // Sum up all values left in the stack for the final result
+        int result = 0;
+        while (!stack.isEmpty()) {
+            result += stack.pop();
         }
 
-        return sum;
+        return result;
     }
 }
