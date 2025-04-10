@@ -114,7 +114,7 @@ public class NumberOfIslands {
         for (int i = 0; i < mRows; ++i) {
             int nCols = grid[i].length;
             for (int j = 0; j < nCols; ++j) {
-                if (grid[i][j] == 1) {
+                if (grid[i][j] == '1') {
                     ++numIslands;
                     bfs(grid, i, j);
                 }
@@ -139,55 +139,44 @@ public class NumberOfIslands {
      * Removing the front element (coordinates)
      * Checking all four adjacent cells (up, down, left, right)
      * For each adjacent cell that is land ('1'), we mark it as visited and add its coordinates to the queue
-     * @param grid
-     * @param row
-     * @param col
+     *
+     * @param grid The 2D grid representing the map
+     * @param row The starting row position
+     * @param col The starting column position
      */
     private void bfs(char[][] grid, int row, int col) {
-        if (grid[row][col] != '1') {
-            // Already marked with sentinel # or water 0
-            return;
-        }
-        // Get the size
-        int nCols = grid[row].length;
-        Queue<int[]> q = new LinkedList<>();
+        // Create a queue for BFS
+        Queue<int[]> queue = new LinkedList<>();
 
-        // Enqueue this coordinate
-        q.add(new int[]{row, col});
+        // Add the starting cell to the queue and mark it as visited
+        queue.add(new int[]{row, col});
+        grid[row][col] = '#';  // Mark as visited
 
-        // Mark this as a connected land cell with # sentinel value
-        grid[row][col] = '#';
+        // Define directions: up, right, down, left
+        int[][] directions = {{-1, 0}, {0, 1}, {1, 0}, {0, -1}};
 
-        while (!q.isEmpty()) {
-            // Next row in position 0, col in 1
-            int[] next = q.remove();
-            int i = next[0];
-            int j = next[1];
+        // Process the queue until empty
+        while (!queue.isEmpty()) {
+            // Get the current cell coordinates
+            int[] current = queue.poll();
+            int r = current[0];
+            int c = current[1];
 
-            // Enqueue the four neighbors
-            if (0 < i) {
-                // Check neighbor above
-                bfsVisit(grid, i - 1, j, q);
+            // Check all four adjacent cells
+            for (int[] dir : directions) {
+                int newRow = r + dir[0];
+                int newCol = c + dir[1];
+
+                // Check if the new position is valid and is land ('1')
+                if (newRow >= 0 && newRow < mRows &&
+                    newCol >= 0 && newCol < grid[newRow].length &&
+                    grid[newRow][newCol] == '1') {
+
+                    // Mark as visited and add to queue
+                    grid[newRow][newCol] = '#';
+                    queue.add(new int[]{newRow, newCol});
+                }
             }
-            if (i < mRows - 1) {
-                // Check neighbor below
-                bfsVisit(grid, i + 1, j, q);
-            }
-            if (0 < j) {
-                // Check neighbor to left
-                bfsVisit(grid, i, j - 1, q);
-            }
-            if (j < nCols - 1) {
-                // Neighbor to right
-                bfsVisit(grid, i, j + 1, q);
-            }
-        }
-    }
-
-    private void bfsVisit(char[][] grid, int row, int col, Queue<int[]> q) {
-        if (grid[row][col] == '1') {
-            bfs(grid, row, col);
-            q.add(new int[]{ row, col });
         }
     }
 
@@ -199,11 +188,142 @@ public class NumberOfIslands {
      * 2. Iterate through the grid and union adjacent land cells.
      * 3. Count the number of distinct sets (islands).
      *
+     * Time Complexity: O(m*n*α(m*n)) where α is the inverse Ackermann function
+     * Space Complexity: O(m*n) for the Union-Find data structure
+     *
      * @param grid The m x n 2D binary grid representing the map.
      * @return The number of islands in the grid.
      */
     public int numIslandsUnionFind(char[][] grid) {
+        if (grid == null || grid.length == 0) {
+            return 0;
+        }
+        
+        int rows = grid.length;
+        int cols = grid[0].length;
+        
+        // Create our own Union-Find data structure
+        DisjointSet uf = new DisjointSet(rows * cols);
+        
+        // Map to track land cells (we only care about land cells for islands)
+        boolean[] isLand = new boolean[rows * cols];
+        
+        // First pass: mark land cells
+        for (int i = 0; i < rows; i++) {
+            for (int j = 0; j < cols; j++) {
+                if (grid[i][j] == '1') {
+                    isLand[i * cols + j] = true;
+                }
+            }
+        }
+        
+        // Define directions: right and down (no need for all 4 directions to avoid double counting)
+        int[][] directions = {{1, 0}, {0, 1}};
+        
+        // Second pass: union adjacent land cells
+        for (int i = 0; i < rows; i++) {
+            for (int j = 0; j < cols; j++) {
+                if (grid[i][j] == '1') {
+                    int index = i * cols + j;
+                    
+                    // Check adjacent cells (right and down)
+                    for (int[] dir : directions) {
+                        int newRow = i + dir[0];
+                        int newCol = j + dir[1];
+                        
+                        // If adjacent cell is within bounds and is land, union them
+                        if (newRow >= 0 && newRow < rows && 
+                            newCol >= 0 && newCol < cols && 
+                            grid[newRow][newCol] == '1') {
+                            
+                            int newIndex = newRow * cols + newCol;
+                            uf.union(index, newIndex);
+                        }
+                    }
+                }
+            }
+        }
+        
+        // Count distinct roots among land cells
         int numIslands = 0;
+        boolean[] rootCounted = new boolean[rows * cols];
+        
+        for (int i = 0; i < rows * cols; i++) {
+            if (isLand[i]) {
+                int root = uf.find(i);
+                if (!rootCounted[root]) {
+                    numIslands++;
+                    rootCounted[root] = true;
+                }
+            }
+        }
+        
         return numIslands;
+    }
+    
+    /**
+     * A simple implementation of Disjoint Set (Union-Find) data structure
+     * with path compression and union by rank optimizations.
+     */
+    private static class DisjointSet {
+        private final int[] parent;
+        private final int[] rank;
+        
+        /**
+         * Initialize a disjoint set with n elements, each in its own set.
+         * 
+         * @param n Number of elements
+         */
+        public DisjointSet(int n) {
+            parent = new int[n];
+            rank = new int[n];
+            
+            // Initialize each element as its own parent
+            for (int i = 0; i < n; i++) {
+                parent[i] = i;
+                rank[i] = 0;
+            }
+        }
+        
+        /**
+         * Find the representative (root) of the set containing element x.
+         * Uses path compression for efficiency.
+         * 
+         * @param x Element to find
+         * @return Root of the set containing x
+         */
+        public int find(int x) {
+            if (parent[x] != x) {
+                parent[x] = find(parent[x]); // Path compression
+            }
+            return parent[x];
+        }
+        
+        /**
+         * Union the sets containing elements x and y.
+         * Uses union by rank for efficiency.
+         * 
+         * @param x First element
+         * @param y Second element
+         */
+        public void union(int x, int y) {
+            int rootX = find(x);
+            int rootY = find(y);
+            
+            if (rootX == rootY) {
+                return; // Already in the same set
+            }
+            
+            // Union by rank: attach smaller rank tree under root of higher rank tree
+            if (rank[rootX] < rank[rootY]) {
+                parent[rootX] = rootY;
+            } else if (rank[rootX] > rank[rootY]) {
+                parent[rootY] = rootX;
+            } else {
+                // If ranks are the same, make one the root and increment its rank
+                parent[rootY] = rootX;
+                rank[rootX]++;
+            }
+        }
     }
 }
