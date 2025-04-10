@@ -3,8 +3,11 @@ package techlead_bst;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Queue;
 import java.util.NoSuchElementException;
 import java.util.Random;
+
+import javax.swing.tree.TreeNode;
 
 /**
  * Binary Search Tree implementation with standard operations.
@@ -417,7 +420,7 @@ public class BinarySearchTree {
             return result;
         }
         
-        java.util.Queue<Node> queue = new LinkedList<>();
+        Queue<Node> queue = new LinkedList<>();
         queue.add(root);
         
         while (!queue.isEmpty()) {
@@ -430,6 +433,39 @@ public class BinarySearchTree {
             if (node.right != null) {
                 queue.add(node.right);
             }
+        }
+        
+        return result;
+    }
+
+    public List<List<Integer>> levelListOrder(Node root) {
+        List<List<Integer>> result = new LinkedList<>();
+        if (root == null) {
+            return result;
+        }
+        
+        Queue<Node> queue = new LinkedList<>();
+        queue.add(root);
+        
+        while (!queue.isEmpty()) {
+            // Number of nodes at current level
+            int levelSize = queue.size();
+            List<Integer> level = new LinkedList<>();
+
+            for (int i = 0; i < levelSize; i++) {
+                Node node = queue.remove();
+                level.add(node.key);
+
+                // Add children for next level for processing
+                if (node.left != null) {
+                    queue.add(node.left);
+                }
+                if (node.right != null) {
+                    queue.add(node.right);
+                }
+            }
+            // Add the current level list to the result
+            result.add(level);
         }
         
         return result;
