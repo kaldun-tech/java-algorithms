@@ -46,8 +46,19 @@ public class CourseScheduleII {
      * @return An array with the order of courses to take, or an empty array if impossible
      */
     public int[] findOrderDFS(int numCourses, int[][] prerequisites) {
-        // TODO: Implement DFS approach for topological sorting
-        return new int[0];
+        List<Integer> result = new ArrayList<>();
+        Map<Integer, List<Integer>> adjList = buildAdjacencyList(numCourses, prerequisites);
+        int[] visited = new int[numCourses];
+
+        for (int i = 0; i < numCourses; ++i) {
+            if (dfs(i, adjList, visited, result)) {
+                // Found cycle
+                return new int[0];
+            }
+        }
+
+        int order[numCourses];
+        return result.toArray(order);
     }
 
     /**
@@ -60,7 +71,22 @@ public class CourseScheduleII {
      * @return true if no cycle is detected, false otherwise
      */
     private boolean dfs(int course, Map<Integer, List<Integer>> adjList, int[] visited, List<Integer> result) {
-        // TODO: Implement DFS helper method
+        List<Integer> adjacent = adjList.get(course);
+        for (int a : adjacent) {
+            if (visited[a] == 2) {
+                // 2 -> Already visited -> Cycle
+                System.out.println("Detected cycle at position " + a);
+                return true;
+            } else if (visited[a] == 1) {
+                // 1 -> Visiting -> Add to result and mark visited
+                result.add(a);
+                visited[a] = 2;
+            } else {
+                // 0 -> unvisited -> visit and recurse
+                visited[a] = 1;
+                return dfs(a, adjList, visited, result);
+            }
+        }
         return false;
     }
 
