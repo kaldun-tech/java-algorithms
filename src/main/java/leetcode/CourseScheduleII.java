@@ -48,17 +48,26 @@ public class CourseScheduleII {
     public int[] findOrderDFS(int numCourses, int[][] prerequisites) {
         List<Integer> result = new ArrayList<>();
         Map<Integer, List<Integer>> adjList = buildAdjacencyList(numCourses, prerequisites);
+        // 0 = unvisited, 1 = visiting (in current path), 2 = visited (completed)
         int[] visited = new int[numCourses];
 
-        for (int i = 0; i < numCourses; ++i) {
-            if (dfs(i, adjList, visited, result)) {
-                // Found cycle
-                return new int[0];
+        // Check each course
+        for (int i = 0; i < numCourses; i++) {
+            if (visited[i] == 0) {
+                if (hasCycleDFS(i, adjList, visited, result)) {
+                    // Cycle detected, impossible to complete all courses
+                    return new int[0];
+                }
             }
         }
 
-        int order[numCourses];
-        return result.toArray(order);
+        // Convert list to array (in reverse order for correct topological sort)
+        int[] order = new int[numCourses];
+        for (int i = 0; i < numCourses; i++) {
+            order[i] = result.get(numCourses - 1 - i);
+        }
+        
+        return order;
     }
 
     /**
@@ -70,23 +79,38 @@ public class CourseScheduleII {
      * @param result List to store the topological ordering
      * @return true if no cycle is detected, false otherwise
      */
-    private boolean dfs(int course, Map<Integer, List<Integer>> adjList, int[] visited, List<Integer> result) {
-        List<Integer> adjacent = adjList.get(course);
-        for (int a : adjacent) {
-            if (visited[a] == 2) {
-                // 2 -> Already visited -> Cycle
-                System.out.println("Detected cycle at position " + a);
+    /**
+     * Helper method for DFS approach to detect cycles and build the topological ordering.
+     *
+     * @param course The current course to process
+     * @param adjList The adjacency list representation of the graph
+     * @param visited Array to track visited status: 0=unvisited, 1=visiting, 2=visited
+     * @param result List to store the topological ordering
+     * @return true if a cycle is detected, false otherwise
+     */
+    private boolean hasCycleDFS(int course, Map<Integer, List<Integer>> adjList, int[] visited, List<Integer> result) {
+        // Mark as visiting
+        visited[course] = 1;
+        
+        // Visit all neighbors
+        for (int neighbor : adjList.get(course)) {
+            if (visited[neighbor] == 1) {
+                // Already in the current path - cycle detected
+                System.out.println("Detected cycle at course " + neighbor);
                 return true;
-            } else if (visited[a] == 1) {
-                // 1 -> Visiting -> Add to result and mark visited
-                result.add(a);
-                visited[a] = 2;
-            } else {
-                // 0 -> unvisited -> visit and recurse
-                visited[a] = 1;
-                return dfs(a, adjList, visited, result);
+            } else if (visited[neighbor] == 0) {
+                // Unvisited - recursively check
+                if (hasCycleDFS(neighbor, adjList, visited, result)) {
+                    return true;
+                }
             }
+            // If visited[neighbor] == 2, it's already processed, so skip
         }
+        
+        // Mark as visited and add to result
+        visited[course] = 2;
+        result.add(course);
+        
         return false;
     }
 
@@ -109,47 +133,56 @@ public class CourseScheduleII {
      * @return An array with the order of courses to take, or an empty array if impossible
      */
     public int[] findOrderBFS(int numCourses, int[][] prerequisites) {
-        Map<Integer, List<Integer>> adjacencies = buildAdjacencyList(numCourses, prerequisites);
-        assert adjacencies != null;
-        assert adjacencies.size() == numCourses;
-
-        Queue<Integer> q = new LinkedList();
-        int inDegrees = new int[numCourses];
-        for (int i = 0; i < numCourses; ++i) {
-            inDegrees[i] = adjacencies.get(i).size();
-            if (inDegrees[i] == 0) {
-                // Add to queue
-                q.add(i);
+        // Build graph and calculate in-degrees
+        List<List<Integer>> graph = new ArrayList<>();
+        for (int i = 0; i < numCourses; i++) {
+            graph.add(new ArrayList<>());
+        }
+        
+        int[] inDegree = new int[numCourses];
+        
+        // For each prerequisite [a,b], b is prerequisite of a
+        // Add edge from b to a and increment in-degree of a
+        for (int[] prereq : prerequisites) {
+            int course = prereq[0];       // Course that has a prerequisite
+            int prerequisite = prereq[1]; // Prerequisite course
+            graph.get(prerequisite).add(course);
+            inDegree[course]++;
+        }
+        
+        // Add all courses with no prerequisites to the queue
+        Queue<Integer> queue = new LinkedList<>();
+        for (int i = 0; i < numCourses; i++) {
+            if (inDegree[i] == 0) {
+                queue.add(i);
             }
         }
-
-        int order = new int[numCourses];
-        int count = 0;
-        while (!q.isEmpty()) {
-            // Add next in queue to order
-            int next = q.remove();
-            order[count++] = next;
-            // Check prereqs
-            List<Integer> prereqs = adjacencies.get(next);
-            for (Integer p : prereqs) {
-                inDegrees[p]--;
-                if (inDegrees[p] == 0) {
-                    q.add(a);
+        
+        // Process courses in topological order
+        int[] order = new int[numCourses];
+        int index = 0;
+        
+        while (!queue.isEmpty()) {
+            int current = queue.poll();
+            order[index++] = current;
+            
+            // For each course that depends on current course
+            for (int dependent : graph.get(current)) {
+                // Decrement in-degree and add to queue if in-degree becomes 0
+                inDegree[dependent]--;
+                if (inDegree[dependent] == 0) {
+                    queue.add(dependent);
                 }
             }
         }
-
-        // Not getting through all the courses indicates a cycle
-        if (count != numCourses) {
-            for (int i = 0; i < numCourses; ++i) {
-                if (0 < inDegrees[i]) {
-                    System.out.println("Found cycle at course " + i);
-                    return new int[];
-                }
-            }
+        
+        // If we couldn't process all courses, a cycle exists
+        if (index != numCourses) {
+            System.out.println("Cycle detected, impossible to complete all courses");
+            return new int[0];
         }
-
-        return new int[0];
+        
+        return order;
     }
 
     /**
@@ -157,11 +190,11 @@ public class CourseScheduleII {
      *
      * @param numCourses The number of courses
      * @param prerequisites The prerequisite relationships between courses in form [a, b]
-     * @return A map where the key is a course and the value is a list of its prerequisites
+     * @return A map where the key is a course and the value is a list of courses that depend on it
      */
     private Map<Integer, List<Integer>> buildAdjacencyList(int numCourses, int[][] prerequisites) {
         // Start by building unconnected graph of empty lists
-        Map<Integer, <List<Integer>>> map = new HashMap<>();
+        Map<Integer, List<Integer>> map = new HashMap<>();
         for (int i = 0; i < numCourses; ++i) {
             List<Integer> list = new ArrayList<>();
             map.put(i, list);
@@ -177,10 +210,10 @@ public class CourseScheduleII {
             assert prerequisites[i].length == 2;
             int a = prerequisites[i][0];
             int b = prerequisites[i][1];
-            // Point prerequisite relationship from from a to b
-            List<ArrayList> prereqsA = map.get(a);
-            assert prereqsA != null;
-            prereqsA.add(b);
+            // Prerequisite relationship is an edge from b to a
+            List<Integer> adjacent = map.get(b);
+            assert adjacent != null;
+            adjacent.add(a);
         }
         return map;
     }
