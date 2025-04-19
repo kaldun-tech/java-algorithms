@@ -119,7 +119,7 @@ public class UniquePaths {
         int nCols = obstacleGrid[0].length;
 
         // Base Case 1: Out of bounds or obstacle
-        if (row >= mRows || col >= nCols || obstacleGrid[row][col] == 1) {
+        if (mRows <= row || nCols <= col || obstacleGrid[row][col] == 1) {
             return 0;
         }
 
