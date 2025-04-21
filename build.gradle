@@ -13,6 +13,7 @@ repositories {
     mavenCentral()
 }
 
+// Standard Gradle source set configuration
 sourceSets {
     main {
         java {
@@ -21,7 +22,9 @@ sourceSets {
     }
     test {
         java {
-            srcDirs = ['test/java']
+            // Include both test directories for backward compatibility
+            // but prefer the standard Gradle location (src/test/java)
+            srcDirs = ['src/test/java', 'test/java']
         }
     }
 }
@@ -60,10 +63,27 @@ tasks.withType(JavaCompile) {
     options.compilerArgs += ['-Xlint:unchecked', '-Xlint:deprecation']
 }
 
+// Standard test task configuration
 test {
     useJUnit()
     testLogging {
         events "passed", "skipped", "failed"
+        showStandardStreams = true
+        exceptionFormat = 'full'
+    }
+    
+    // Always run tests even when they haven't changed
+    outputs.upToDateWhen { false }
+    
+    // Show a summary of tests at the end
+    afterSuite { desc, result ->
+        if (desc.parent == null) {
+            println "\nTest result: ${result.resultType}"
+            println "Test summary: ${result.testCount} tests, " +
+                    "${result.successfulTestCount} succeeded, " +
+                    "${result.failedTestCount} failed, " +
+                    "${result.skippedTestCount} skipped"
+        }
     }
 }
 

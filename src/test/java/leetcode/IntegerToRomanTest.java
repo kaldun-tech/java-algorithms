@@ -1,4 +1,4 @@
-package com.kaldun.leetcode;
+package leetcode;
 
 import org.junit.Test;
 import static org.junit.Assert.*;
@@ -55,6 +55,7 @@ public class IntegerToRomanTest {
         assertEquals("CD", converter.intToRoman(400));
         assertEquals("CM", converter.intToRoman(900));
         assertEquals("MCMXCIV", converter.intToRoman(1994));
+        assertEquals("MMMDCCXLIX", converter.intToRoman(3749));
         assertEquals("MMMCMXCIX", converter.intToRoman(3999));
     }
 

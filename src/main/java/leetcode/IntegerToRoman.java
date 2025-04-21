@@ -1,5 +1,9 @@
 package leetcode;
 
+import java.util.HashMap;
+import java.util.Arrays;
+import java.util.Set;
+
 /**
  * LeetCode Problem 12: Integer to Roman
  *
@@ -56,7 +60,11 @@ public class IntegerToRoman {
 
         // Create a sorted array of keys
         Set<Integer> keySet = symbolMap.keySet();
-        keys = keySet.toArray(new int[]);
+        keys = new int[keySet.size()];
+        int i = 0;
+        for (int k : keys) {
+            keys[i++] = k;
+        }
         Arrays.sort(keys);
     }
 

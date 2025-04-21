@@ -1,6 +1,9 @@
 package com.kaldun.cache;
 
 import org.junit.Test;
+
+import leetcode.LRUCache;
+
 import static org.junit.Assert.*;
 
 /**

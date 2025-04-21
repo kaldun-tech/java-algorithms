@@ -26,15 +26,53 @@ Include external libraries: `javac -cp lib/dependency.jar YourProgram.java`
 ## Using Gradle
 Set up Gradle: `gradle init`
 
-Common Gradle commands:
-gradle build: Compiles, tests, and packages your code into a JAR file
+### Common Gradle Commands
+- `./gradlew build`: Compiles, tests, and packages your code into a JAR file
+- `./gradlew tasks`: Lists all available tasks
+- `./gradlew assemble`: Assembles the outputs of the project
+- `./gradlew clean`: Deletes the build directory
 
-gradle tasks: Lists all available tasks
+### Running Tests
 
-gradle assemble: Assembles the outputs of the project
+#### Run All Tests
+```bash
+./gradlew test
+```
 
-gradle test: Runs the tests
+#### Run Tests in a Specific Package
+```bash
+./gradlew test --tests "leetcode.*"
+```
 
-gradle bootRun: For Spring Boot applications, runs the application
+#### Run a Specific Test Class
+```bash
+./gradlew test --tests "leetcode.IntegerToRomanTest"
+```
 
+#### Run a Specific Test Method
+```bash
+./gradlew test --tests "leetcode.IntegerToRomanTest.testBasicConversions"
+```
 
+#### Run Custom Test Tasks
+
+##### Run LeetCode Tests
+```bash
+./gradlew testGraphsLeetCode
+```
+
+##### Run BST Tests
+```bash
+./gradlew testBST
+```
+
+### Project Structure
+
+This project follows standard Gradle conventions:
+
+- Implementation classes: `src/main/java/[package]/`
+- Test classes: `src/test/java/[package]/`
+
+For example:
+- `src/main/java/leetcode/IntegerToRoman.java`
+- `src/test/java/leetcode/IntegerToRomanTest.java`
