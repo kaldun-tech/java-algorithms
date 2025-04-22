@@ -22,9 +22,8 @@ sourceSets {
     }
     test {
         java {
-            // Include both test directories for backward compatibility
-            // but prefer the standard Gradle location (src/test/java)
-            srcDirs = ['src/test/java', 'test/java']
+            // Use only the standard Gradle test location to avoid package conflicts
+            srcDirs = ['src/test/java']
         }
     }
 }

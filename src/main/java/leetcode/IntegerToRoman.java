@@ -1,9 +1,5 @@
 package leetcode;
 
-import java.util.HashMap;
-import java.util.Arrays;
-import java.util.Set;
-
 /**
  * LeetCode Problem 12: Integer to Roman
  *
@@ -37,39 +33,18 @@ import java.util.Set;
  */
 public class IntegerToRoman {
 
-    HashMap<Integer, String> symbolMap = new HashMap<>();
-    int[] keys;
-
-    public IntegerToRoman() {
-        // Standard forms
-        symbolMap.put(1, "I");
-        symbolMap.put(5, "V");
-        symbolMap.put(10, "X");
-        symbolMap.put(50, "L");
-        symbolMap.put(100, "C");
-        symbolMap.put(500, "D");
-        symbolMap.put(1000, "M");
-
-        // Subtractive forms
-        symbolMap.put(4, "IV");
-        symbolMap.put(9, "IX");
-        symbolMap.put(40, "XL");
-        symbolMap.put(90, "XC");
-        symbolMap.put(400, "CD");
-        symbolMap.put(900, "CM");
-
-        // Create a sorted array of keys
-        Set<Integer> keySet = symbolMap.keySet();
-        keys = new int[keySet.size()];
-        int i = 0;
-        for (int k : keys) {
-            keys[i++] = k;
-        }
-        Arrays.sort(keys);
-    }
+    // Static final arrays for better performance - no HashMap lookups needed
+    private static final int[] VALUES = {
+        1000, 900, 500, 400, 100, 90, 50, 40, 10, 9, 5, 4, 1
+    };
+    
+    private static final String[] SYMBOLS = {
+        "M", "CM", "D", "CD", "C", "XC", "L", "XL", "X", "IX", "V", "IV", "I"
+    };
 
     /**
      * Converts an integer to a Roman numeral string.
+     * Optimized implementation using a greedy approach with pre-sorted value arrays.
      *
      * @param num The integer to convert (1 <= num <= 3999)
      * @return The Roman numeral representation of the input integer
@@ -77,34 +52,23 @@ public class IntegerToRoman {
      */
     public String intToRoman(int num) {
         // Validate input
-        if (num < 1 || 3999 < num) {
+        if (num < 1 || num > 3999) {
             throw new IllegalArgumentException("Input must be between 1 and 3999");
         }
 
-        StringBuilder sb = new StringBuilder();
-        // Loop through keys in reverse order to build Roman numeral: O(n) where n is length of num
-        for (int i = keys.length - 1; 0 <= i; --i) {
-            num = intToRoman(num, i, sb);
+        StringBuilder result = new StringBuilder();
+        
+        // Single pass through the values array
+        // Time Complexity: O(1) - constant number of iterations (13 max)
+        // Space Complexity: O(1) - constant extra space
+        for (int i = 0; i < VALUES.length; i++) {
+            // Append the symbol as many times as we can
+            while (num >= VALUES[i]) {
+                num -= VALUES[i];
+                result.append(SYMBOLS[i]);
+            }
         }
-
-        return sb.toString();
-    }
-
-    /**
-     * Gets the Roman numeral for a particular number and index, appends to the
-     * StringBuilder, decrements and returns the input number
-     * @param num
-     * @param i
-     * @param sb
-     * @return
-     */
-    private int intToRoman(int num, int i, StringBuilder sb) {
-        int nextKey = keys[i];
-        String nextVal = symbolMap.get(nextKey);
-        while (nextKey <= num) {
-            sb.append(nextVal);
-            num -= nextKey;
-        }
-        return num;
+        
+        return result.toString();
     }
 }
