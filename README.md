@@ -58,7 +58,7 @@ Set up Gradle: `gradle init`
 
 ##### Run LeetCode Tests
 ```bash
-./gradlew testGraphsLeetCode
+./gradlew testLeetCode
 ```
 
 ##### Run BST Tests

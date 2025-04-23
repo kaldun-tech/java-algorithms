@@ -98,7 +98,7 @@ task testBST(type: Test) {
 }
 
 // Task for running just the Graph algorithm tests
-task testGraphsLeetCode(type: Test) {
+task testLeetCode(type: Test) {
     group = 'verification'
     description = 'Runs the LeetCode algorithm unit tests'
     useJUnit()
