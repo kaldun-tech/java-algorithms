@@ -42,16 +42,17 @@ public class LongestSubstringWithoutRepeatingCharacters {
         // Use a sliding window approach
         for (int endIndex = 0; endIndex < s.length(); ++endIndex) {
             char nextChar = s.charAt(endIndex);
-            // Slide window right if we have already seen this char
+            // Slide window to the right while we have already seen this char
             while (seen.contains(nextChar)) {
                 // Slide window to the right
                 seen.remove(s.charAt(startIndex));
                 ++startIndex;
             }
 
+            // Mark this char seen
             seen.add(nextChar);
 
-            // Check if current substring is longer than previous
+            // If current substring is longer than previous max then this length is new max
             int nextLen = endIndex + 1 - startIndex;
             if (maxLength < nextLen) {
                 maxLength = nextLen;

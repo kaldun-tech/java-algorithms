@@ -14,8 +14,8 @@ public class Deque<Item> implements Iterable<Item> {
         }
     }
 
-    private Node head;
-    private Node tail;
+    private Node head; // Dummy node, head->next points to real head
+    private Node tail; // Parent of real tail pointed to by tail.next
     private int size;
 
     /** Construct an empty deque. Head and tail are initialized as dummy pointers */
@@ -161,7 +161,7 @@ public class Deque<Item> implements Iterable<Item> {
             StdOut.println("Caught expected exception for removeLast on empty");
         }
 
-        StdOut.println("Test exception handling by rdd null elements");
+        StdOut.println("Test exception handling by adding null elements");
         try {
             deque.addFirst(null);
             assert false;
@@ -189,23 +189,21 @@ public class Deque<Item> implements Iterable<Item> {
 
         StdOut.println("Test iterating over elements");
         Iterator<Integer> it = deque.iterator();
-        boolean triedRemove = false;
+        try {
+            it.remove();
+            assert false;
+        } catch (UnsupportedOperationException e) {
+            StdOut.println("Remove not allowed on iterator");
+        }
         while (it.hasNext()) {
             int next = it.next();
             StdOut.println("Next element: " + next);
-            if (triedRemove) continue;
-            try {
-                it.remove();
-                assert false;
-            } catch (UnsupportedOperationException e) {
-                triedRemove = true;
-                StdOut.println("Remove not allowed on iterator");
-            }
         }
 
         StdOut.println("Test iterator's next method when there are no more items");
         try {
             it.next();
+            assert false;
         } catch (NoSuchElementException e) {
             StdOut.println("Caught expected exception: " + e.getMessage());
         }

@@ -109,8 +109,7 @@ public class Percolation {
         if (0 < args.length) {
             try {
                 n = Integer.parseInt(args[0]);
-            }
-            catch (NumberFormatException e) {
+            } catch (NumberFormatException e) {
                 StdOut.println("Failed to parse input grid size " + args[0]);
             }
         }
@@ -127,8 +126,7 @@ public class Percolation {
             sb = new StringBuilder("Row ").append(row)
                     .append(" must be positive and less than n");
             throw new IllegalArgumentException(sb.toString());
-        }
-        else if (col < 1 || n < col) {
+        } else if (col < 1 || n < col) {
             sb = new StringBuilder("Column ").append(col)
                     .append(" must be positive and less than n");
             throw new IllegalArgumentException(sb.toString());
