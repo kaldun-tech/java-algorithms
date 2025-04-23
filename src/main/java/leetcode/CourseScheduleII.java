@@ -77,15 +77,6 @@ public class CourseScheduleII {
      * @param adjList The adjacency list representation of the graph
      * @param visited Array to track visited status: 0=unvisited, 1=visiting, 2=visited
      * @param result List to store the topological ordering
-     * @return true if no cycle is detected, false otherwise
-     */
-    /**
-     * Helper method for DFS approach to detect cycles and build the topological ordering.
-     *
-     * @param course The current course to process
-     * @param adjList The adjacency list representation of the graph
-     * @param visited Array to track visited status: 0=unvisited, 1=visiting, 2=visited
-     * @param result List to store the topological ordering
      * @return true if a cycle is detected, false otherwise
      */
     private boolean hasCycleDFS(int course, Map<Integer, List<Integer>> adjList, int[] visited, List<Integer> result) {

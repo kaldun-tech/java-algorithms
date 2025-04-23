@@ -15,6 +15,7 @@ import java.util.Collections;
  * Assumes no duplicate flights - could be handled by changing list of flights to set
  */
 public class CityFlightsSearch {
+    // Adjacency list representation of the graph O(V + E) space for V vertices and E edges
     Map<String, List<String>> cityFlights = new HashMap<>();
 
     public CityFlightsSearch(List<String> hyphenSeparatedFlights) {
@@ -29,6 +30,7 @@ public class CityFlightsSearch {
             String start = split[0];
             String end = split[1];
             List<String> fList;
+            // Add start city to adjacency list if it doesn't exist
             if (cityFlights.containsKey(start)) {
                 fList = cityFlights.get(start);
             } else {

@@ -39,8 +39,8 @@ public class BasicCalculator {
             if (Character.isDigit(c)) {
                 // Build the current number
                 currentNumber = currentNumber * 10 + (c - '0');
-            } else { // It's an operator
-                // Process the previous number based on the lastOperator
+            } else {
+                // It's an operator -> Process the previous number based on the lastOperator
                 if (lastOperator == '+') {
                     stack.push(currentNumber);
                 } else if (lastOperator == '-') {
