@@ -26,52 +26,32 @@ import java.util.HashSet;
  * Notice that the answer must be a substring, "pwke" is a subsequence and not a substring.
  */
 public class LongestSubstringWithoutRepeatingCharacters {
-
-    /**
-     * Finds the length of the longest substring without repeating characters.
-     *
-     * @param s The input string
-     * @return The length of the longest substring without repeating characters
-     */
     public int lengthOfLongestSubstring(String s) {
-        int longest = 0;
-        // Loop through the string O(n) where n is length -> O(n^2)
-        for (int i = 0; i < s.length(); ++i) {
-            int nextLength = lengthOfLongestSubstringAtIndex(s, i);
-            if (longest < nextLength) {
-                longest = nextLength;
+        Set<Character> seen = new HashSet<>();
+        int startIndex = 0;
+        int maxLength = 0;
+        int maxStartIndex = 0;
+
+        // Use a sliding window approach
+        for (int endIndex = 0; endIndex < s.length(); ++endIndex) {
+            char nextChar = s.charAt(endIndex);
+            // Slide window right if we have already seen this char
+            while (seen.contains(nextChar)) {
+                // Slide window to the right
+                seen.remove(s.charAt(startIndex));
+                ++startIndex;
+            }
+
+            seen.add(nextChar);
+
+            // Check if current substring is longer than previous
+            int nextLen = endIndex + 1 - startIndex;
+            if (maxLength < nextLen) {
+                maxLength = nextLen;
+                maxStartIndex = startIndex;
             }
         }
 
-        return longest;
-    }
-
-    /**
-     * Gets the longest substring without repeating characters that starts at a particular index
-     * @param s
-     * @param start
-     * @return
-     */
-    private int lengthOfLongestSubstringAtIndex(String s, int start) {
-        // Stores the frequency of characters encountered in a substring
-        // Should be less than O(n) where n is string length memory usage, closer to constant
-        HashSet<Character> charsSeen = new HashSet<>();
-        int length = 0;
-
-        // O(n) iteration over string
-        for (int i = start; i < s.length(); ++i) {
-            char c = s.charAt(i);
-            // O(1) hash lookup
-            if (charsSeen.contains(c)) {
-                // This character is non-unique so return
-                return length;
-            } else {
-                charsSeen.add(c);
-                ++length;
-            }
-        }
-
-        // All characters are unique!
-        return length;
+        return maxLength;
     }
 }
