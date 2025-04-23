@@ -1,5 +1,6 @@
 package leetcode;
 
+import java.util.Set;
 import java.util.HashSet;
 
 /**
@@ -26,11 +27,17 @@ import java.util.HashSet;
  * Notice that the answer must be a substring, "pwke" is a subsequence and not a substring.
  */
 public class LongestSubstringWithoutRepeatingCharacters {
+    /**
+     * Finds the length of the longest substring without repeating characters.
+     * O(n) time complexity because of a single pass through the string
+     * O(min(m, n)) space complexity because the set size is bounded by the number of unique characters m
+     * @param s The input string
+     * @return The length of the longest substring without repeating characters
+     */
     public int lengthOfLongestSubstring(String s) {
         Set<Character> seen = new HashSet<>();
         int startIndex = 0;
         int maxLength = 0;
-        int maxStartIndex = 0;
 
         // Use a sliding window approach
         for (int endIndex = 0; endIndex < s.length(); ++endIndex) {
@@ -48,7 +55,6 @@ public class LongestSubstringWithoutRepeatingCharacters {
             int nextLen = endIndex + 1 - startIndex;
             if (maxLength < nextLen) {
                 maxLength = nextLen;
-                maxStartIndex = startIndex;
             }
         }
 
