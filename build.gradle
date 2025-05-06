@@ -39,7 +39,7 @@ task runPuzzleSolver(type: JavaExec) {
     group = 'application'
     description = 'Runs the 8-Puzzle Solver'
     classpath = sourceSets.main.runtimeClasspath
-    main = 'Solver'
+    mainClass = 'Solver' // Updated from 'main' to 'mainClass'
     workingDir = file('src/main/java/08_puzzle')
 }
 
@@ -47,7 +47,7 @@ task runBST(type: JavaExec) {
     group = 'application'
     description = 'Runs the Binary Search Tree'
     classpath = sourceSets.main.runtimeClasspath
-    main = 'BinarySearchTree'
+    mainClass = 'BinarySearchTree' // Updated from 'main' to 'mainClass'
     workingDir = file('src/main/java/techlead_bst')
 }
 
@@ -107,4 +107,31 @@ task testLeetCode(type: Test) {
         showStandardStreams = true
     }
     include '**/leetcode/**'
+}
+
+// Task for running just the 8-puzzle tests
+task testPuzzle(type: Test) {
+    group = 'verification'
+    description = 'Runs the 8-puzzle unit tests'
+    useJUnit()
+    testLogging {
+        events "passed", "skipped", "failed"
+        showStandardStreams = true
+        showExceptions = true
+        showCauses = true
+        showStackTraces = true
+    }
+    
+    // Use a more specific pattern to match the test files
+    include 'BoardTest.class'
+    include '**/*BoardTest.class'
+    
+    // Add the main classes to the test classpath
+    classpath = sourceSets.main.runtimeClasspath + sourceSets.test.runtimeClasspath
+    
+    // Explicitly set the test classes directory to avoid the deprecation warning
+    testClassesDirs = sourceSets.test.output.classesDirs
+    
+    // Set the working directory to include the 08_puzzle directory
+    workingDir = file('src/test/java/08_puzzle')
 }

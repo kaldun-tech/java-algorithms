@@ -141,7 +141,7 @@ public class Board {
             // Check if the new position is in bounds
             if (0 <= newRow && newRow < dimension() && 0 <= newCol && newCol < dimension()) {
                 // Create a copy of the tiles
-                int[][] newTiles = twinTiles();
+                int[][] newTiles = copyTiles();
 
                 // Swap the blank with the adjacent tile
                 newTiles[blankRow][blankCol] = newTiles[newRow][newCol];
@@ -155,16 +155,16 @@ public class Board {
     }
 
     /** Creates a copy of the existing tiles */
-    private int[][] twinTiles() {
-        int[][] twinTiles = new int[dimension()][dimension()];
+    private int[][] copyTiles() {
+        int[][] copy = new int[dimension()][dimension()];
 
         // Copy the tiles
         for (int i = 0; i < dimension(); i++) {
             for (int j = 0; j < dimension(); j++) {
-                twinTiles[i][j] = tiles[i][j];
+                copy[i][j] = tiles[i][j];
             }
         }
-        return twinTiles;
+        return copy;
     }
 
     /**
@@ -172,7 +172,7 @@ public class Board {
      * @return a board that is obtained by exchanging any pair of tiles
      */
     public Board twin() {
-        int[][] twinTiles = twinTiles();
+        int[][] twinTiles = copyTiles();
 
         // Find two non-blank tiles to swap
         int row1 = 0, col1 = 0;
@@ -191,10 +191,4 @@ public class Board {
 
         return new Board(twinTiles);
     }
-
-    // unit testing (not graded)
-    public static void main(String[] args) {
-
-    }
-
 }
