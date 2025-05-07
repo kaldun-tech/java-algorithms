@@ -9,6 +9,18 @@ import edu.princeton.cs.algs4.Queue;
  * square. The diagram shows a sequence of moves from an initial board (left) to the goal board (right).
  *
  * To begin, create an immutable data type that models an n-by-n board with sliding tiles.
+ * 
+ * Runtime and Memory Complexity:
+ * - Constructor: O(n²) time to initialize and find the blank square, O(n²) space for the tiles array
+ * - dimension(): O(1) time and space
+ * - hamming(): O(n²) time to check each tile, O(1) extra space
+ * - manhattan(): O(n²) time to calculate distances for each tile, O(1) extra space
+ * - isGoal(): O(n²) time (calls hamming()), O(1) extra space
+ * - equals(): O(n²) time to compare all tiles, O(1) extra space
+ * - neighbors(): O(n²) time to create up to 4 neighbor boards, O(n²) space for each neighbor
+ * - twin(): O(n²) time to create a new board with swapped tiles, O(n²) space for the new board
+ * 
+ * where n is the dimension of the board
  */
 public class Board {
 

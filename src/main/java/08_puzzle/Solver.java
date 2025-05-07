@@ -21,6 +21,24 @@ import java.util.NoSuchElementException;
  * Consequently, whent he goal board is dequeued we have discovered both a sequence
  * of moves from the initial board to the goal, and also one with the fewest moves.
  * Challenge: Prove it
+ * 
+ * Runtime and Memory Complexity:
+ * - Constructor/solve(): O(n⁴ * 2^(n²)) time in the worst case for A* search, where n is the board dimension.
+ *   This is because:
+ *   1. There are n² tiles and each can be in n² positions, giving (n²)! possible board states
+ *   2. The branching factor is at most 4 (max neighbors per board)
+ *   3. The A* algorithm with Manhattan heuristic dramatically prunes the search space
+ *   4. Each board operation is O(n²)
+ * 
+ * - Space complexity: O(n⁴ * 2^(n²)) in the worst case to store the priority queue
+ * 
+ * - isSolvable(): O(1) time and space after solving
+ * - moves(): O(1) time and space after solving
+ * - solution(): O(d) time and O(d) space, where d is the solution depth (number of moves)
+ * 
+ * Note: While the theoretical worst-case complexity is high, in practice the A* algorithm
+ * with Manhattan distance heuristic is very efficient for solving the 8-puzzle and can
+ * typically solve random instances in milliseconds.
  */
 public class Solver {
 

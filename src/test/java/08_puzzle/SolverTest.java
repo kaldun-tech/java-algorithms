@@ -214,4 +214,122 @@ public class SolverTest {
         // Solution should be null for an unsolvable board
         assertNull("Solution should be null for unsolvable board", solution);
     }
+    
+    /**
+     * Test that the solution path is correct for a simple board.
+     * Verifies not just the count but the actual sequence of boards.
+     */
+    @Test
+    public void testSolutionPathCorrectness() {
+        // Create a board that requires a simple solution (just move the blank up)
+        int[][] tiles = {{1, 2, 3}, {4, 5, 6}, {7, 0, 8}};
+        Object board = createBoard(tiles);
+        Object solver = createSolver(board);
+        
+        Object solution = callMethod(solver, "solution", new Class<?>[]{}, new Object[]{});
+        assertNotNull("Solution should not be null for solvable board", solution);
+        
+        // Convert solution to a list of boards for easier testing
+        java.util.List<Object> solutionList = new java.util.ArrayList<>();
+        for (Object b : (Iterable<?>) solution) {
+            solutionList.add(b);
+        }
+        
+        // Verify the solution length
+        assertEquals("Solution should have 2 boards (initial + 1 move)", 2, solutionList.size());
+        
+        // Verify the initial board
+        Object initialBoard = solutionList.get(0);
+        assertArrayEquals("Initial board should match", tiles, getBoardTiles(initialBoard));
+        
+        // Verify the final board (goal state)
+        Object finalBoard = solutionList.get(solutionList.size() - 1);
+        int[][] goalTiles = {{1, 2, 3}, {4, 5, 6}, {7, 8, 0}};
+        assertArrayEquals("Final board should be the goal state", goalTiles, getBoardTiles(finalBoard));
+    }
+    
+    /**
+     * Test solving a larger board (4x4) to ensure scalability.
+     */
+    @Test
+    public void testLargerBoard() {
+        // Create a 4x4 board that requires a few moves
+        int[][] tiles = {
+            {1, 2, 3, 4},
+            {5, 6, 7, 8},
+            {9, 10, 11, 0},
+            {13, 14, 15, 12}
+        };
+        Object board = createBoard(tiles);
+        Object solver = createSolver(board);
+        
+        // Verify it's solvable
+        Object isSolvable = callMethod(solver, "isSolvable", new Class<?>[]{}, new Object[]{});
+        assertTrue("4x4 board should be solvable", (Boolean) isSolvable);
+        
+        // Verify moves count
+        Object movesCount = callMethod(solver, "moves", new Class<?>[]{}, new Object[]{});
+        assertTrue("4x4 board should require moves", (Integer) movesCount > 0);
+    }
+    
+    /**
+     * Test performance with a moderately complex puzzle.
+     */
+    @Test
+    public void testPerformance() {
+        // Create a board that requires multiple moves
+        int[][] tiles = {{8, 1, 3}, {4, 0, 2}, {7, 6, 5}};
+        Object board = createBoard(tiles);
+        
+        // Measure time to solve
+        long startTime = System.currentTimeMillis();
+        Object solver = createSolver(board);
+        Object isSolvable = callMethod(solver, "isSolvable", new Class<?>[]{}, new Object[]{});
+        Object solution = callMethod(solver, "solution", new Class<?>[]{}, new Object[]{});
+        long endTime = System.currentTimeMillis();
+        
+        // Verify it's solvable
+        assertTrue("Board should be solvable", (Boolean) isSolvable);
+        
+        // Log performance info
+        long duration = endTime - startTime;
+        System.out.println("Time to solve puzzle: " + duration + "ms");
+        
+        // Count solution steps
+        int steps = 0;
+        for (@SuppressWarnings("unused") Object b : (Iterable<?>) solution) {
+            steps++;
+        }
+        System.out.println("Solution steps: " + steps);
+        
+        // No hard assertion on time, but log it for review
+        assertTrue("Solving should complete in reasonable time", duration < 5000); // 5 seconds max
+    }
+    
+    /**
+     * Helper method to get the tiles array from a Board object.
+     */
+    private int[][] getBoardTiles(Object board) {
+        try {
+            // Get the toString method
+            Method toStringMethod = board.getClass().getMethod("toString");
+            String boardString = (String) toStringMethod.invoke(board);
+            
+            // Parse the board string to extract tiles
+            String[] lines = boardString.trim().split("\n");
+            int n = lines.length;
+            int[][] tiles = new int[n][n];
+            
+            for (int i = 0; i < n; i++) {
+                String[] values = lines[i].trim().split("\\s+");
+                for (int j = 0; j < n; j++) {
+                    tiles[i][j] = Integer.parseInt(values[j]);
+                }
+            }
+            
+            return tiles;
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to get board tiles", e);
+        }
+    }
 }
