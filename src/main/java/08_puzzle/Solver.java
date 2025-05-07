@@ -4,8 +4,6 @@ import edu.princeton.cs.algs4.Queue;
 import edu.princeton.cs.algs4.StdOut;
 
 import java.util.Comparator;
-import java.util.Iterator;
-import java.util.NoSuchElementException;
 
 /**
  * Implements A* search. Efficacy of the approach hinges on the choice of
@@ -135,7 +133,6 @@ public class Solver {
         final Board board;
         final int moves;
         final SearchNode prev;
-        final int hammingPriority;
         final int manhattanPriority;
 
         public SearchNode(Board b, int m, SearchNode p) {
@@ -143,7 +140,6 @@ public class Solver {
             moves = m;
             prev = p;
             // Cache priority values to avoid recomputation
-            hammingPriority = board.hamming() + moves;
             manhattanPriority = board.manhattan() + moves;
         }
 

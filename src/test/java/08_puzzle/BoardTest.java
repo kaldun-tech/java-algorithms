@@ -71,11 +71,15 @@ public class BoardTest {
      */
     private int getTileValue(Object board, int row, int col) {
         try {
-            // We'll use toString and parse the result to get the tile value
+            // Use toString and parse the result to get the tile value
             String boardString = (String) callMethod(board, "toString", new Class<?>[]{}, new Object[]{});
             String[] lines = boardString.trim().split("\n");
-            String[] values = lines[row].trim().split("\\s+");
-            return Integer.parseInt(values[col]);
+            // Skip the first line (dimension) and adjust row index
+            String line = lines[row + 1].trim();
+            // Split by multiple spaces and filter out empty strings
+            String[] values = line.split("\\s+");
+            // Account for the new format with double spaces for single digits
+            return Integer.parseInt(values[col].trim());
         } catch (Exception e) {
             throw new RuntimeException("Failed to get tile value", e);
         }
@@ -318,8 +322,17 @@ public class BoardTest {
         assertNotNull("toString() should not return null", result);
         assertTrue("toString() should return a String", result instanceof String);
         
-        // The exact format might vary, but it should contain all the numbers
+        // Check for the correct format
         String boardString = (String) result;
+        
+        // First line should be the dimension
+        String[] lines = boardString.split("\n");
+        assertEquals("First line should be the dimension", "3", lines[0]);
+        
+        // Should have n+1 lines (dimension + n rows)
+        assertEquals("Should have dimension+1 lines", 4, lines.length);
+        
+        // Check that all numbers are present
         for (int i = 0; i <= 8; i++) {
             assertTrue("Board string should contain " + i, boardString.contains(Integer.toString(i)));
         }

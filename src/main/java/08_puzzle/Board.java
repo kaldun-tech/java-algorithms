@@ -9,7 +9,7 @@ import edu.princeton.cs.algs4.Queue;
  * square. The diagram shows a sequence of moves from an initial board (left) to the goal board (right).
  *
  * To begin, create an immutable data type that models an n-by-n board with sliding tiles.
- * 
+ *
  * Runtime and Memory Complexity:
  * - Constructor: O(n²) time to initialize and find the blank square, O(n²) space for the tiles array
  * - dimension(): O(1) time and space
@@ -19,12 +19,12 @@ import edu.princeton.cs.algs4.Queue;
  * - equals(): O(n²) time to compare all tiles, O(1) extra space
  * - neighbors(): O(n²) time to create up to 4 neighbor boards, O(n²) space for each neighbor
  * - twin(): O(n²) time to create a new board with swapped tiles, O(n²) space for the new board
- * 
+ *
  * where n is the dimension of the board
  */
 public class Board {
 
-    private int[][] tiles;
+    private final int[][] tiles;
     private int blankRow;
     private int blankCol;
 
@@ -32,14 +32,18 @@ public class Board {
     /** create a board from an n-by-n array of tiles, where tiles[row][col] = tile at (row, col)
      *  You may assume that the constructor receives an n-by-n array containing the n^2 integers
      *  between 0 and n^2 − 1, where 0 represents the blank square.
-     *  You may also assume that 2 ≤ n < 128.*/
+     *  You may also assume that 2 ≤ n < 128.
+     *  
+     *  @param tiles the n-by-n array of tiles
+     */
     public Board(int[][] tiles) {
-        this.tiles = tiles;
+        // Create a deep copy of the tiles array to ensure immutability
+        this.tiles = copyTiles(tiles);
+        
         // Find the blank square
-        for (int i = 0; i < dimension(); ++i) {
-            for (int j = 0; j < dimension(); ++j) {
-                if (tiles[i][j] == 0) {
-                    // Blank square
+        for (int i = 0; i < dimension(); i++) {
+            for (int j = 0; j < dimension(); j++) {
+                if (this.tiles[i][j] == 0) {
                     blankRow = i;
                     blankCol = j;
                 }
@@ -52,11 +56,20 @@ public class Board {
      * of tiles in row-major order, using 0 to designate the blank square.
      */
     public String toString() {
-        StringBuilder sb = new StringBuilder(dimension());
-        for (int[] row : tiles) {
+        StringBuilder sb = new StringBuilder();
+        // First line contains the dimension
+        sb.append(dimension());
+
+        // Remaining lines contain the grid
+        for (int i = 0; i < dimension(); i++) {
             sb.append("\n");
-            for (int entry : row) {
-                sb.append(" ").append(entry);
+            for (int j = 0; j < dimension(); j++) {
+                // Format with proper spacing (2 spaces for single-digit numbers)
+                if (tiles[i][j] < 10) {
+                    sb.append("  ").append(tiles[i][j]);
+                } else {
+                    sb.append(" ").append(tiles[i][j]);
+                }
             }
         }
         return sb.toString();
@@ -113,11 +126,18 @@ public class Board {
         return hamming() == 0;
     }
 
-    // does this board equal y?
+    /**
+     * Does this board equal y?
+     * Two boards are equal if they have the same size and their corresponding tiles are in the same positions.
+     * 
+     * @param y the object to compare with this board
+     * @return true if this board equals y; false otherwise
+     */
     public boolean equals(Object y) {
         if (this == y) {
             return true;
-        } else if (!(y instanceof Board)) {
+        } 
+        if (y == null || this.getClass() != y.getClass()) {
             return false;
         }
 
@@ -166,17 +186,32 @@ public class Board {
         return neighbors;
     }
 
-    /** Creates a copy of the existing tiles */
-    private int[][] copyTiles() {
-        int[][] copy = new int[dimension()][dimension()];
+    /**
+     * Creates a deep copy of the given tiles array.
+     * 
+     * @param sourceTiles the tiles array to copy
+     * @return a deep copy of the tiles array
+     */
+    private static int[][] copyTiles(int[][] sourceTiles) {
+        int n = sourceTiles.length;
+        int[][] copy = new int[n][n];
 
         // Copy the tiles
-        for (int i = 0; i < dimension(); i++) {
-            for (int j = 0; j < dimension(); j++) {
-                copy[i][j] = tiles[i][j];
+        for (int i = 0; i < n; i++) {
+            for (int j = 0; j < n; j++) {
+                copy[i][j] = sourceTiles[i][j];
             }
         }
         return copy;
+    }
+    
+    /**
+     * Creates a deep copy of this board's tiles array.
+     * 
+     * @return a deep copy of this board's tiles array
+     */
+    private int[][] copyTiles() {
+        return copyTiles(this.tiles);
     }
 
     /**
