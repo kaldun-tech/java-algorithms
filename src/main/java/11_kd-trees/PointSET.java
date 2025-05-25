@@ -18,12 +18,12 @@ import java.util.TreeSet;
  * to the number of points in the set.
  */
 public class PointSET {
-    
+
     /**
      * The set of points stored in a red-black BST
      */
     private final TreeSet<Point2D> points;
-    
+
     /**
      * Construct an empty set of points
      */
@@ -36,7 +36,6 @@ public class PointSET {
      * @return true if the set contains no points, false otherwise
      */
     public boolean isEmpty() {
-        // TODO: Implement this method
         return points.isEmpty();
     }
 
@@ -45,7 +44,6 @@ public class PointSET {
      * @return the number of points in the set
      */
     public int size() {
-        // TODO: Implement this method
         return points.size();
     }
 
@@ -55,8 +53,9 @@ public class PointSET {
      * @throws IllegalArgumentException if the point is null
      */
     public void insert(Point2D p) {
-        // TODO: Implement this method
-        if (p == null) throw new IllegalArgumentException("Point cannot be null");
+        if (p == null) {
+            throw new IllegalArgumentException("Point cannot be null");
+        }
         points.add(p);
     }
 
@@ -67,8 +66,9 @@ public class PointSET {
      * @throws IllegalArgumentException if the point is null
      */
     public boolean contains(Point2D p) {
-        // TODO: Implement this method
-        if (p == null) throw new IllegalArgumentException("Point cannot be null");
+        if (p == null) {
+            throw new IllegalArgumentException("Point cannot be null");
+        }
         return points.contains(p);
     }
 
@@ -76,7 +76,6 @@ public class PointSET {
      * Draw all points to standard draw
      */
     public void draw() {
-        // TODO: Implement this method
         StdDraw.setPenColor(StdDraw.BLACK);
         StdDraw.setPenRadius(0.01);
         for (Point2D p : points) {
@@ -91,18 +90,19 @@ public class PointSET {
      * @throws IllegalArgumentException if the rectangle is null
      */
     public Iterable<Point2D> range(RectHV rect) {
-        // TODO: Implement this method
-        if (rect == null) throw new IllegalArgumentException("Rectangle cannot be null");
-        
+        if (rect == null) {
+            throw new IllegalArgumentException("Rectangle cannot be null");
+        }
+
         ArrayList<Point2D> result = new ArrayList<>();
-        
+
         // Brute force approach: check each point in the set
         for (Point2D p : points) {
             if (rect.contains(p)) {
                 result.add(p);
             }
         }
-        
+
         return result;
     }
 
@@ -113,13 +113,16 @@ public class PointSET {
      * @throws IllegalArgumentException if the point is null
      */
     public Point2D nearest(Point2D p) {
-        // TODO: Implement this method
-        if (p == null) throw new IllegalArgumentException("Point cannot be null");
-        if (isEmpty()) return null;
-        
+        if (p == null) {
+            throw new IllegalArgumentException("Point cannot be null");
+        }
+        if (isEmpty()) {
+            return null;
+        }
+
         Point2D nearest = null;
         double minDistance = Double.POSITIVE_INFINITY;
-        
+
         // Brute force approach: check each point in the set
         for (Point2D point : points) {
             double distance = p.distanceSquaredTo(point);
@@ -128,15 +131,7 @@ public class PointSET {
                 nearest = point;
             }
         }
-        
-        return nearest;
-    }
 
-    /**
-     * Unit testing of the methods (optional)
-     * @param args command-line arguments
-     */
-    public static void main(String[] args) {
-        // TODO: Implement unit tests
+        return nearest;
     }
 }

@@ -28,21 +28,35 @@ public class KdTree {
      * Node in the KdTree
      */
     private static class Node {
-        private Point2D point;      // the point
-        private RectHV rect;        // the axis-aligned rectangle corresponding to this node
-        private Node left;          // the left/bottom subtree
-        private Node right;         // the right/top subtree
-        private boolean vertical;   // is this a vertical dividing line (true) or horizontal (false)
+        /** the point */
+        private Point2D point;
+        /** the axis-aligned rectangle corresponding to this node */
+        private RectHV rect;
+        /** the left/bottom subtree */
+        private Node left;
+        /** the right/top subtree */
+        private Node right;
+        /** is this a vertical dividing line (true) or horizontal (false) */
+        private boolean vertical;
+
+        public Node(Point2D p, RectHV r, boolean isVertical) {
+            point = p;
+            rect = r;
+            vertical = isVertical;
+        }
     }
-    
-    private Node root;      // root of the KdTree
-    private int size;       // number of nodes in the KdTree
-    
+
+    /** root of the KdTree */
+    private Node root;
+    /** number of nodes in the KdTree */
+    private int size;
+
     /**
      * Construct an empty set of points
      */
     public KdTree() {
-        // Initialize an empty KdTree
+        root = null;
+        size = 0;
     }
 
     /**
@@ -50,8 +64,7 @@ public class KdTree {
      * @return true if the set contains no points, false otherwise
      */
     public boolean isEmpty() {
-        // Check if the KdTree is empty
-        return true; // placeholder return
+        return size == 0;
     }
 
     /**
@@ -59,8 +72,7 @@ public class KdTree {
      * @return the number of points in the set
      */
     public int size() {
-        // Return the number of points in the KdTree
-        return 0; // placeholder return
+        return size;
     }
 
     /**
@@ -69,9 +81,20 @@ public class KdTree {
      * @throws IllegalArgumentException if the point is null
      */
     public void insert(Point2D p) {
-        // Insert a point into the KdTree
+        if (p == null) {
+            throw new IllegalArgumentException("Point cannot be null");
+        }
+
+        if (isEmpty()) {
+            root = new Node(p);
+
+        } else {
+
+        }
+
+        ++size;
     }
-    
+
     /**
      * Does the set contain point p?
      * @param p the point to check
@@ -79,6 +102,13 @@ public class KdTree {
      * @throws IllegalArgumentException if the point is null
      */
     public boolean contains(Point2D p) {
+        if (p == null) {
+            throw new IllegalArgumentException("Point cannot be null");
+        }
+
+        if (isEmpty()) {
+            return false;
+        }
         // Check if the KdTree contains the point
         return false; // placeholder return
     }
@@ -92,7 +122,12 @@ public class KdTree {
      * This method need not be efficient—it is primarily for debugging.
      */
     public void draw() {
-        // Draw all points and splitting lines
+        StdDraw.setPenColor(StdDraw.BLACK);
+        StdDraw.setPenRadius(0.01);
+        // TODO subdivision splits
+        for (Point2D p : points) {
+            p.draw();
+        }
     }
 
     /**
@@ -107,8 +142,15 @@ public class KdTree {
      * @throws IllegalArgumentException if the rectangle is null
      */
     public Iterable<Point2D> range(RectHV rect) {
-        // Find all points contained in the query rectangle
-        return new ArrayList<Point2D>(); // placeholder return
+        if (rect == null) {
+            throw new IllegalArgumentException("Rectangle cannot be null");
+        }
+
+        ArrayList<Point2D> result = new ArrayList<>();
+
+        // TODO
+
+        return result;
     }
 
     /**
@@ -130,15 +172,17 @@ public class KdTree {
      * @throws IllegalArgumentException if the point is null
      */
     public Point2D nearest(Point2D p) {
-        // Find the nearest neighbor to the query point
-        return null; // placeholder return
+        if (p == null) {
+            throw new IllegalArgumentException("Point cannot be null");
+        }
+        if (isEmpty()) {
+            return null;
+        }
+
+        return null;
     }
 
-    /**
-     * Unit testing of the methods (optional)
-     * @param args command-line arguments
-     */
-    public static void main(String[] args) {
-        // Unit testing
+    private Point2D nearestPruning(Point2D) {
+
     }
 }
