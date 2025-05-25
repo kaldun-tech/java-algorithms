@@ -135,3 +135,30 @@ task testPuzzle(type: Test) {
     // Set the working directory to include the 08_puzzle directory
     workingDir = file('src/test/java/08_puzzle')
 }
+
+// Task for running just the KdTree tests
+task testKdTree(type: Test) {
+    group = 'verification'
+    description = 'Runs the KdTree and PointSET unit tests'
+    useJUnit()
+    testLogging {
+        events "passed", "skipped", "failed"
+        showStandardStreams = true
+        showExceptions = true
+        showCauses = true
+        showStackTraces = true
+    }
+    
+    // Use a pattern to match the KdTree test files
+    include '**/*PointSETTest.class'
+    include '**/*KdTreeTest.class'
+    
+    // Add the main classes to the test classpath
+    classpath = sourceSets.main.runtimeClasspath + sourceSets.test.runtimeClasspath
+    
+    // Explicitly set the test classes directory to avoid the deprecation warning
+    testClassesDirs = sourceSets.test.output.classesDirs
+    
+    // Set the working directory to include the 11_kd-trees directory
+    workingDir = file('src/test/java/11_kd-trees')
+}
