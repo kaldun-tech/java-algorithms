@@ -84,10 +84,27 @@ public class KdTree {
         if (p == null) {
             throw new IllegalArgumentException("Point cannot be null");
         }
+        if (contains(p)) {
+            // Nothing to do
+            return;
+        }
 
+        doInsert(p, root);
+    }
+
+    /**
+     * Search and insert: The algorithms for search and insert are similar to those
+     * for BSTs, but at the root we use the x-coordinate (if the point to be inserted
+     * has a smaller x-coordinate than the point at the root, go left; otherwise go right);
+     * then at the next level, we use the y-coordinate (if the point to be inserted
+     * has a smaller y-coordinate than the point in the node, go left; otherwise go right);
+     * then at the next level the x-coordinate, and so forth.
+     * @param p
+     * @param n
+     */
+    private void doInsert(Point2D p, Node n) {
         if (isEmpty()) {
             root = new Node(p);
-
         } else {
 
         }
@@ -104,13 +121,26 @@ public class KdTree {
     public boolean contains(Point2D p) {
         if (p == null) {
             throw new IllegalArgumentException("Point cannot be null");
-        }
-
-        if (isEmpty()) {
+        } else if (isEmpty()) {
             return false;
         }
-        // Check if the KdTree contains the point
-        return false; // placeholder return
+
+        return doContains(p, root);
+    }
+
+    /**
+     * Search and insert: The algorithms for search and insert are similar to those
+     * for BSTs, but at the root we use the x-coordinate (if the point to be inserted
+     * has a smaller x-coordinate than the point at the root, go left; otherwise go right);
+     * then at the next level, we use the y-coordinate (if the point to be inserted
+     * has a smaller y-coordinate than the point in the node, go left; otherwise go right);
+     * then at the next level the x-coordinate, and so forth.
+     * @param p
+     * @param n
+     * @return
+     */
+    private boolean doContains(Point2D p, Node n) {
+        return false;
     }
 
     /**
@@ -122,12 +152,34 @@ public class KdTree {
      * This method need not be efficient—it is primarily for debugging.
      */
     public void draw() {
-        StdDraw.setPenColor(StdDraw.BLACK);
         StdDraw.setPenRadius(0.01);
-        // TODO subdivision splits
-        for (Point2D p : points) {
-            p.draw();
+        doDraw(root);
+    }
+
+    /** Draws the tree recursively O(n) pre-order traversal */
+    private void doDraw(Node n) {
+        if (n == null) {
+            return;
         }
+
+        drawPoint(n.point);
+        drawRect(n.rect, n.vertical);
+        if (n.left != null) {
+            doDraw(n.left);
+        }
+        if (n.right != null) {
+            doDraw(n.right);
+        }
+    }
+
+    private void drawPoint(Point2D p) {
+        StdDraw.setPenColor(StdDraw.BLACK);
+        p.draw();
+    }
+
+    private void drawRect(RectHV r, boolean isVertical) {
+        StdDraw.setPenColor(isVertical ? StdDraw.RED : StdDraw.BLUE);
+        r.draw();
     }
 
     /**
@@ -147,10 +199,33 @@ public class KdTree {
         }
 
         ArrayList<Point2D> result = new ArrayList<>();
-
-        // TODO
-
+        doRange(rect, root, result);
         return result;
+    }
+
+    /** Does the range search using BST O(lg N) */
+    private void doRange(RectHV rect, Node n, ArrayList<Point2D> result) {
+        if (rect == null || n == null || result == null) {
+            // Only n should ever be null
+            return;
+        }
+        if (!rect.intersects(n.rect)) {
+            // No reason to explore a node with non-intersecting rectangle
+            return;
+        }
+
+        Point2D p = n.point;
+        if (rect.contains(p)) {
+            result.add(p);
+        }
+
+        // Explore children if relevant
+        if (n.left != null && rect.intersects(n.left.rect)) {
+            doRange(rect, n.left, result);
+        }
+        if (n.right != null && rect.intersects(n.right.rect)) {
+            doRange(rect, n.right, result);
+        }
     }
 
     /**
@@ -179,10 +254,24 @@ public class KdTree {
             return null;
         }
 
-        return null;
+        Point2D bestSoFar = null;
+        return nearestPruning(p, bestSoFar, n);
     }
 
-    private Point2D nearestPruning(Point2D) {
+    /**
+     *
+     * @param p
+     * @param bestSoFar
+     * @param n
+     * @return
+     */
+    private Point2D nearestPruning(Point2D p, Point2D bestSoFar, Node n) {
+        if (p == null || n == null) {
+            return null;
+        }
 
+        if (bestSoFar == null) {
+            bestSoFar = n.point;
+        }
     }
 }
