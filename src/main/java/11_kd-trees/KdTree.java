@@ -101,51 +101,6 @@ public class KdTree {
     }
 
     /**
-     * Gets the rectangle to add to a node which splits the parent's rectangle based on level
-     * @param toAdd
-     * @param parentRect
-     * @param nextVertical is the node to add vertical based on its level
-     * @param cmp comparison result of toAdd to parent's point
-     * @return
-     */
-    private RectHV getSplitRect(Point2D toAdd, RectHV parentRect, boolean nextVertical, int cmp) {
-        double xmin, xmax, ymin, ymax, splitVal;
-        if (nextVertical) {
-            // For vertical rectangle inherit y values from parent
-            ymin = parentRect.ymin();
-            ymax = parentRect.ymax();
-            // Subdivide x values by splitting parent width
-            splitVal = parentRect.xmin() + parentRect.width() / 2;
-            if (cmp < 0) {
-                // Left rectangle
-                xmin = parentRect.xmin();
-                xmax = splitVal;
-            } else {
-                // Right rectangle
-                xmin = splitVal;
-                xmax = parentRect.xmax();
-            }
-        } else {
-            // For horizontal inherit x values from parent
-            xmin = parentRect.xmin();
-            xmax = parentRect.ymax();
-            // Subdivide y values by parent height
-            splitVal = parentRect.ymin() + parentRect.height() / 2;
-            if (cmp < 0) {
-                // Lower rectangle
-                ymin = parentRect.xmin();
-                ymax = splitVal;
-            } else {
-                // Upper rectangle
-                ymin = splitVal;
-                ymax = parentRect.xmax();
-            }
-        }
-
-        return new RectHV(xmin, ymin, xmax, ymax);
-    }
-
-    /**
      * Search and insert: The algorithms for search and insert are similar to those
      * for BSTs, but at the root we use the x-coordinate (if the point to be inserted
      * has a smaller x-coordinate than the point at the root, go left; otherwise go right);
@@ -159,20 +114,41 @@ public class KdTree {
         int cmp = comparePointToNode(p, n);
         // Flip the vertical flag for the next level
         boolean nextVertical = !n.vertical;
-        RectHV r = getSplitRect(p, n.rect, nextVertical, cmp);
-
-        if (cmp < 0 && n.left == null) {
-            ++size;
-            n.left = new Node(p, r, nextVertical);
-        } else if (cmp < 0) {
-            // n.left != null -> go left
-            doInsert(p, n.left);
-        } else if (n.right == null) {
-            ++size;
-            n.right = new Node(p, r, nextVertical);
+        
+        if (cmp < 0) {
+            // Go left
+            if (n.left == null) {
+                // Create a new rectangle for the left child
+                RectHV childRect;
+                if (n.vertical) {
+                    // Vertical split - divide by x-coordinate
+                    childRect = new RectHV(n.rect.xmin(), n.rect.ymin(), n.point.x(), n.rect.ymax());
+                } else {
+                    // Horizontal split - divide by y-coordinate
+                    childRect = new RectHV(n.rect.xmin(), n.rect.ymin(), n.rect.xmax(), n.point.y());
+                }
+                ++size;
+                n.left = new Node(p, childRect, nextVertical);
+            } else {
+                doInsert(p, n.left);
+            }
         } else {
             // Go right
-            doInsert(p, n.right);
+            if (n.right == null) {
+                // Create a new rectangle for the right child
+                RectHV childRect;
+                if (n.vertical) {
+                    // Vertical split - divide by x-coordinate
+                    childRect = new RectHV(n.point.x(), n.rect.ymin(), n.rect.xmax(), n.rect.ymax());
+                } else {
+                    // Horizontal split - divide by y-coordinate
+                    childRect = new RectHV(n.rect.xmin(), n.point.y(), n.rect.xmax(), n.rect.ymax());
+                }
+                ++size;
+                n.right = new Node(p, childRect, nextVertical);
+            } else {
+                doInsert(p, n.right);
+            }
         }
     }
 
@@ -288,21 +264,27 @@ public class KdTree {
     private void doRange(RectHV rect, Node n, ArrayList<Point2D> result) {
         if (result == null) {
             throw new IllegalArgumentException("Result list cannot be null");
-        } else if (n == null || !rect.intersects(n.rect)) {
-            // No reason to explore a node with non-intersecting rectangle
+        } else if (n == null) {
+            return;
+        }
+        
+        // If the query rectangle doesn't intersect this node's rectangle,
+        // we can skip this entire subtree
+        if (!rect.intersects(n.rect)) {
             return;
         }
 
+        // Check if the current point is in the query rectangle
         Point2D p = n.point;
         if (rect.contains(p)) {
             result.add(p);
         }
 
-        // Explore children if relevant
-        if (n.left != null && rect.intersects(n.left.rect)) {
+        // Recursively search both subtrees
+        if (n.left != null) {
             doRange(rect, n.left, result);
         }
-        if (n.right != null && rect.intersects(n.right.rect)) {
+        if (n.right != null) {
             doRange(rect, n.right, result);
         }
     }
@@ -319,11 +301,13 @@ public class KdTree {
     public Point2D nearest(Point2D p) {
         if (p == null) {
             throw new IllegalArgumentException("Point cannot be null");
-        } else  if (isEmpty()) {
+        } else if (isEmpty()) {
             return null;
         }
 
-        return nearestPruning(p, root.point, root);
+        // Start with null as the best point so far, which will be updated to the root
+        // in the first call to nearestPruning
+        return nearestPruning(p, null, root);
     }
 
     /**
@@ -338,52 +322,75 @@ public class KdTree {
      * subtree that is on the same side of the splitting line as the query point
      * as the first subtree to explore—the closest point found while exploring the
      * first subtree may enable pruning of the second subtree.
-     * @param p
-     * @param bestSoFar
-     * @param n
-     * @return
+     * @param p query point
+     * @param bestSoFar best point found so far
+     * @param n current node
+     * @return nearest point
      */
     private Point2D nearestPruning(Point2D p, Point2D bestSoFar, Node n) {
         if (p == null || n == null) {
-            // Should not happen, bad inputs
-            return null;
+            return bestSoFar;
         }
-
-        if (bestSoFar == null) {
-            // Base case for root node
+        
+        // Check if current point is closer than best so far
+        double currentDistSq = p.distanceSquaredTo(n.point);
+        double bestDistSq = bestSoFar == null ? Double.POSITIVE_INFINITY : p.distanceSquaredTo(bestSoFar);
+        
+        if (currentDistSq < bestDistSq) {
             bestSoFar = n.point;
+        }
+        
+        // If this node's rectangle cannot contain a closer point than what we've found,
+        // we can prune this entire subtree
+        if (bestSoFar != null) {
+            bestDistSq = p.distanceSquaredTo(bestSoFar);
+        }
+        
+        // Determine which subtree to search first based on the splitting dimension
+        Node first = null;
+        Node second = null;
+        
+        if (n.vertical) {
+            // For vertical splits, compare x-coordinates
+            if (p.x() < n.point.x()) {
+                first = n.left;
+                second = n.right;
+            } else {
+                first = n.right;
+                second = n.left;
+            }
         } else {
-            Comparator<Point2D> distanceOrder = p.distanceToOrder();
-            int cmp = distanceOrder.compare(bestSoFar, n.point);
-            // Greater than zero indicates n.point is closer than best so far
-            if (0 < cmp) {
-                bestSoFar = n.point;
+            // For horizontal splits, compare y-coordinates
+            if (p.y() < n.point.y()) {
+                first = n.left;
+                second = n.right;
+            } else {
+                first = n.right;
+                second = n.left;
             }
         }
-
-        /* Always choose subtree on the same side of splitting line as the query
-         * point as first subtree to explore */
-        if (n.left != null && n.right != null) {
-            Node firstSubtree = getSameSideSubtree(p, n);
-            Node secondSubtree = (firstSubtree == n.left) ? n.right : n.left;
-
-            bestSoFar = nearestPruning(p, bestSoFar, firstSubtree);
-            bestSoFar = nearestPruning(p, bestSoFar, secondSubtree);
-        } else if (n.left != null) {
-            bestSoFar = nearestPruning(p, bestSoFar, n.left);
-        } else if (n.right != null) {
-            bestSoFar = nearestPruning(p, bestSoFar, n.right);
+        
+        // Search the first subtree if it exists and could contain a closer point
+        if (first != null) {
+            // Only search if the rectangle could contain a closer point
+            double bestDistSqFirst = p.distanceSquaredTo(bestSoFar);
+            double distToFirstRectSq = first.rect.distanceSquaredTo(p);
+            
+            if (distToFirstRectSq <= bestDistSqFirst) {
+                bestSoFar = nearestPruning(p, bestSoFar, first);
+            }
         }
-
+        
+        // Only search the second subtree if it could contain a closer point
+        if (second != null) {
+            double bestDistSqSecond = p.distanceSquaredTo(bestSoFar);
+            double distToSecondRectSq = second.rect.distanceSquaredTo(p);
+            
+            if (distToSecondRectSq <= bestDistSqSecond) {
+                bestSoFar = nearestPruning(p, bestSoFar, second);
+            }
+        }
+        
         return bestSoFar;
-    }
-
-    private Node getSameSideSubtree(Point2D p, Node n) {
-        if (p == null || n == null || n.left == null || n.right == null) {
-            // Should not happen, bad inputs
-            return null;
-        }
-
-        return (n.left.rect.contains(p)) ? n.left : n.right;
     }
 }

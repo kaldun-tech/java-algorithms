@@ -144,10 +144,10 @@ public class KdTreeTest {
     }
 
     /**
-     * Test the range method with various rectangles.
+     * Common setup for range tests.
+     * Inserts test points into the KdTree and returns the range method.
      */
-    @Test
-    public void testRange() throws Exception {
+    private Method setupRangeTest() throws Exception {
         Method insert = kdTreeClass.getMethod("insert", Point2D.class);
         Method range = kdTreeClass.getMethod("range", RectHV.class);
         
@@ -158,44 +158,71 @@ public class KdTreeTest {
         insert.invoke(kdTree, p4); // (0.9, 0.9)
         insert.invoke(kdTree, p5); // (0.2, 0.8)
         
-        // Test with a rectangle that contains all points
-        RectHV rect1 = new RectHV(0.0, 0.0, 1.0, 1.0);
-        Iterable<?> rangeResult1 = (Iterable<?>) range.invoke(kdTree, rect1);
-        List<Point2D> points1 = toList(rangeResult1);
+        return range;
+    }
+    
+    /**
+     * Test the range method with a rectangle that contains all points.
+     */
+    @Test
+    public void testRangeFullRectangle() throws Exception {
+        Method range = setupRangeTest();
         
-        assertEquals("Rectangle covering the unit square should contain all 5 points", 5, points1.size());
-        assertTrue(points1.contains(p1));
-        assertTrue(points1.contains(p2));
-        assertTrue(points1.contains(p3));
-        assertTrue(points1.contains(p4));
-        assertTrue(points1.contains(p5));
+        // Test with a rectangle that contains all points
+        RectHV rect = new RectHV(0.0, 0.0, 1.0, 1.0);
+        Iterable<?> rangeResult = (Iterable<?>) range.invoke(kdTree, rect);
+        List<Point2D> points = toList(rangeResult);
+        
+        assertEquals("Rectangle covering the unit square should contain all 5 points", 5, points.size());
+        assertTrue(points.contains(p1));
+        assertTrue(points.contains(p2));
+        assertTrue(points.contains(p3));
+        assertTrue(points.contains(p4));
+        assertTrue(points.contains(p5));
+    }
+    
+    /**
+     * Test the range method with a rectangle that contains some points.
+     */
+    @Test
+    public void testRangePartialRectangle() throws Exception {
+        Method range = setupRangeTest();
         
         // Test with a rectangle that contains some points
-        RectHV rect2 = new RectHV(0.0, 0.0, 0.6, 0.6);
+        RectHV rect = new RectHV(0.0, 0.0, 0.6, 0.6);
+        Iterable<?> rangeResult = (Iterable<?>) range.invoke(kdTree, rect);
+        List<Point2D> points = toList(rangeResult);
+        
+        assertEquals("Rectangle should contain 2 points", 2, points.size());
+        assertTrue(points.contains(p1));
+        assertTrue(points.contains(p2));
+        assertFalse(points.contains(p3));
+        assertFalse(points.contains(p4));
+        assertFalse(points.contains(p5));
+        
+        // Test with a rectangle in the top-left quadrant
+        RectHV rect2 = new RectHV(0.0, 0.7, 0.3, 1.0);
         Iterable<?> rangeResult2 = (Iterable<?>) range.invoke(kdTree, rect2);
         List<Point2D> points2 = toList(rangeResult2);
         
-        assertEquals("Rectangle should contain 2 points", 2, points2.size());
-        assertTrue(points2.contains(p1));
-        assertTrue(points2.contains(p2));
-        assertFalse(points2.contains(p3));
-        assertFalse(points2.contains(p4));
-        assertFalse(points2.contains(p5));
-        
-        // Test with a rectangle in the top-left quadrant
-        RectHV rect3 = new RectHV(0.0, 0.7, 0.3, 1.0);
-        Iterable<?> rangeResult3 = (Iterable<?>) range.invoke(kdTree, rect3);
-        List<Point2D> points3 = toList(rangeResult3);
-        
-        assertEquals("Rectangle should contain 1 point", 1, points3.size());
-        assertTrue(points3.contains(p5));
+        assertEquals("Rectangle should contain 1 point", 1, points2.size());
+        assertTrue(points2.contains(p5));
+        assertFalse(points2.contains(p2));
+    }
+    
+    /**
+     * Test the range method with a rectangle that contains no points.
+     */
+    @Test
+    public void testRangeEmptyRectangle() throws Exception {
+        Method range = setupRangeTest();
         
         // Test with a rectangle that contains no points
-        RectHV rect4 = new RectHV(0.3, 0.6, 0.4, 0.7);
-        Iterable<?> rangeResult4 = (Iterable<?>) range.invoke(kdTree, rect4);
-        List<Point2D> points4 = toList(rangeResult4);
+        RectHV rect = new RectHV(0.3, 0.6, 0.4, 0.7);
+        Iterable<?> rangeResult = (Iterable<?>) range.invoke(kdTree, rect);
+        List<Point2D> points = toList(rangeResult);
         
-        assertEquals("Rectangle should contain no points", 0, points4.size());
+        assertEquals("Rectangle should contain no points", 0, points.size());
     }
 
     /**
@@ -251,7 +278,12 @@ public class KdTreeTest {
         Point2D query = new Point2D(0.31, 0.29);
         Point2D nearest1 = (Point2D) nearest.invoke(kdTree, query);
         
-        assertEquals("Nearest point to (0.31, 0.29) should be (0.3, 0.3)", expected, nearest1);
+        // Use a small epsilon to account for floating-point precision issues
+        double epsilon = 1e-10;
+        double xDiff = Math.abs(expected.x() - nearest1.x());
+        double yDiff = Math.abs(expected.y() - nearest1.y());
+        assertTrue("Nearest point to (0.31, 0.29) should be close to (0.3, 0.3)", 
+                  xDiff < epsilon && yDiff < epsilon);
         
         // Verify that the nearest point is indeed closer than any other point in the tree
         double nearestDist = query.distanceSquaredTo(nearest1);

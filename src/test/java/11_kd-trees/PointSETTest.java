@@ -143,10 +143,10 @@ public class PointSETTest {
     }
 
     /**
-     * Test the range method.
+     * Common setup for range tests.
+     * Inserts test points into the PointSET and returns the range method.
      */
-    @Test
-    public void testRange() throws Exception {
+    private Method setupRangeTest() throws Exception {
         Method insert = pointSetClass.getMethod("insert", Point2D.class);
         Method range = pointSetClass.getMethod("range", RectHV.class);
         
@@ -156,34 +156,60 @@ public class PointSETTest {
         insert.invoke(pointSet, p3); // (0.7, 0.3)
         insert.invoke(pointSet, p4); // (0.9, 0.9)
         
-        // Test with a rectangle that contains all points
-        RectHV rect1 = new RectHV(0.0, 0.0, 1.0, 1.0);
-        Iterable<?> rangeResult1 = (Iterable<?>) range.invoke(pointSet, rect1);
-        List<Point2D> points1 = toList(rangeResult1);
+        return range;
+    }
+    
+    /**
+     * Test the range method with a rectangle that contains all points.
+     */
+    @Test
+    public void testRangeFullRectangle() throws Exception {
+        Method range = setupRangeTest();
         
-        assertEquals("Rectangle covering the unit square should contain all 4 points", 4, points1.size());
-        assertTrue(points1.contains(p1));
-        assertTrue(points1.contains(p2));
-        assertTrue(points1.contains(p3));
-        assertTrue(points1.contains(p4));
+        // Test with a rectangle that contains all points
+        RectHV rect = new RectHV(0.0, 0.0, 1.0, 1.0);
+        Iterable<?> rangeResult = (Iterable<?>) range.invoke(pointSet, rect);
+        List<Point2D> points = toList(rangeResult);
+        
+        assertEquals("Rectangle covering the unit square should contain all 4 points", 4, points.size());
+        assertTrue(points.contains(p1));
+        assertTrue(points.contains(p2));
+        assertTrue(points.contains(p3));
+        assertTrue(points.contains(p4));
+    }
+    
+    /**
+     * Test the range method with a rectangle that contains some points.
+     */
+    @Test
+    public void testRangePartialRectangle() throws Exception {
+        Method range = setupRangeTest();
         
         // Test with a rectangle that contains some points
-        RectHV rect2 = new RectHV(0.0, 0.0, 0.6, 0.6);
-        Iterable<?> rangeResult2 = (Iterable<?>) range.invoke(pointSet, rect2);
-        List<Point2D> points2 = toList(rangeResult2);
+        RectHV rect = new RectHV(0.0, 0.0, 0.6, 0.6);
+        Iterable<?> rangeResult = (Iterable<?>) range.invoke(pointSet, rect);
+        List<Point2D> points = toList(rangeResult);
         
-        assertEquals("Rectangle should contain 2 points", 2, points2.size());
-        assertTrue(points2.contains(p1));
-        assertTrue(points2.contains(p2));
-        assertFalse(points2.contains(p3));
-        assertFalse(points2.contains(p4));
+        assertEquals("Rectangle should contain 2 points", 2, points.size());
+        assertTrue(points.contains(p1));
+        assertTrue(points.contains(p2));
+        assertFalse(points.contains(p3));
+        assertFalse(points.contains(p4));
+    }
+    
+    /**
+     * Test the range method with a rectangle that contains no points.
+     */
+    @Test
+    public void testRangeEmptyRectangle() throws Exception {
+        Method range = setupRangeTest();
         
         // Test with a rectangle that contains no points
-        RectHV rect3 = new RectHV(0.2, 0.6, 0.4, 0.8);
-        Iterable<?> rangeResult3 = (Iterable<?>) range.invoke(pointSet, rect3);
-        List<Point2D> points3 = toList(rangeResult3);
+        RectHV rect = new RectHV(0.2, 0.6, 0.4, 0.8);
+        Iterable<?> rangeResult = (Iterable<?>) range.invoke(pointSet, rect);
+        List<Point2D> points = toList(rangeResult);
         
-        assertEquals("Rectangle should contain no points", 0, points3.size());
+        assertEquals("Rectangle should contain no points", 0, points.size());
     }
 
     /**
