@@ -114,12 +114,12 @@ public class KdTree {
         int cmp = comparePointToNode(p, n);
         // Flip the vertical flag for the next level
         boolean nextVertical = !n.vertical;
+        // Create a new rectangle for the child
+        RectHV childRect;
         
         if (cmp < 0) {
             // Go left
             if (n.left == null) {
-                // Create a new rectangle for the left child
-                RectHV childRect;
                 if (n.vertical) {
                     // Vertical split - divide by x-coordinate
                     childRect = new RectHV(n.rect.xmin(), n.rect.ymin(), n.point.x(), n.rect.ymax());
@@ -135,8 +135,6 @@ public class KdTree {
         } else {
             // Go right
             if (n.right == null) {
-                // Create a new rectangle for the right child
-                RectHV childRect;
                 if (n.vertical) {
                     // Vertical split - divide by x-coordinate
                     childRect = new RectHV(n.point.x(), n.rect.ymin(), n.rect.xmax(), n.rect.ymax());
@@ -268,8 +266,8 @@ public class KdTree {
             return;
         }
         
-        // If the query rectangle doesn't intersect this node's rectangle,
-        // we can skip this entire subtree
+        /* If the query rectangle doesn't intersect this node's rectangle,
+         * we can skip this entire subtree */
         if (!rect.intersects(n.rect)) {
             return;
         }
@@ -305,8 +303,8 @@ public class KdTree {
             return null;
         }
 
-        // Start with null as the best point so far, which will be updated to the root
-        // in the first call to nearestPruning
+        /* Start with null as the best point so far, which will be updated to the root
+         * in the first call to nearestPruning */
         return nearestPruning(p, null, root);
     }
 
@@ -340,8 +338,8 @@ public class KdTree {
             bestSoFar = n.point;
         }
         
-        // If this node's rectangle cannot contain a closer point than what we've found,
-        // we can prune this entire subtree
+        /* If this node's rectangle cannot contain a closer point than what we've found,
+         * we can prune this entire subtree */
         if (bestSoFar != null) {
             bestDistSq = p.distanceSquaredTo(bestSoFar);
         }

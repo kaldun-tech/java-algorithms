@@ -51,6 +51,34 @@ task runBST(type: JavaExec) {
     workingDir = file('src/main/java/techlead_bst')
 }
 
+// KdTree visualizer tasks
+task runKdTreeVisualizer(type: JavaExec) {
+    group = 'application'
+    description = 'Runs the KdTree Visualizer'
+    classpath = sourceSets.main.runtimeClasspath
+    mainClass = 'KdTreeVisualizer'
+    workingDir = file('src/main/java/11_kd-trees')
+    // No arguments needed for KdTreeVisualizer as it accepts user clicks
+}
+
+task runNearestNeighborVisualizer(type: JavaExec) {
+    group = 'application'
+    description = 'Runs the Nearest Neighbor Visualizer'
+    classpath = sourceSets.main.runtimeClasspath
+    mainClass = 'NearestNeighborVisualizer'
+    workingDir = file('src/main/java/11_kd-trees')
+    args '../../resources/data/2dpoints.txt'  // Pass the input file as an argument
+}
+
+task runRangeSearchVisualizer(type: JavaExec) {
+    group = 'application'
+    description = 'Runs the Range Search Visualizer'
+    classpath = sourceSets.main.runtimeClasspath
+    mainClass = 'RangeSearchVisualizer'
+    workingDir = file('src/main/java/11_kd-trees')
+    args '../../resources/data/2dpoints.txt'  // Pass the input file as an argument
+}
+
 // Default application configuration
 application {
     mainClass = 'PercolationStats'
