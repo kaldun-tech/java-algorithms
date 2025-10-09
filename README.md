@@ -1,5 +1,5 @@
 # java-algorithms
-Working through algorithms course using Java
+Worked through the Princeton/Coursera Data Structures & Algorithms course using Java
 
 ## Compiling and running Java programs
 Check JDK installation: `javac -version`
